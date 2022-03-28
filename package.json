@@ -2,8 +2,9 @@
   "name": "publish-branch-to-npm",
   "version": "0.0.0",
   "description": "GitHub action created to publish a branch of an npm package repo to npm registry",
-  "main": "index.js",
+  "main": "dist/index.mjs",
   "scripts": {
+    "build": "ncc build index.mjs --license licenses.txt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {

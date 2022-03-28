@@ -107,18 +107,26 @@ const setNpmToken = () => {
     throw new Error('No npm token provided');
   }
 
-  execSync(`npm config set //registry.npmjs.org/:_authToken ${npmToken}`);
+  const setTokenCommand = `npm config set //registry.npmjs.org/:_authToken ${npmToken}`;
+  execSync(setTokenCommand);
 };
 
 // update version in package.json (does not get committed)
 const updatePackageVersion = (uniqueVersion) => {
-  execSync(`npm version --no-git-tag-version ${uniqueVersion}`);
+  const versionCommand = `npm version --no-git-tag-version ${uniqueVersion}`;
+  execSync(versionCommand);
 };
 
 // publish with "beta" tag since if we do not specify a tag, "latest" will be used by default
 const publishPackage = () => {
-  // note: add --dry-run flag to command below to avoid publishing
-  execSync(`npm publish --verbose --tag beta`);
+  const isDryRun = core.getInput('dry_run');
+  let publishCommand = `npm publish --verbose --tag beta`;
+
+  if (isDryRun) {
+    publishCommand = `${publishCommand} --dry-run`;
+  }
+
+  execSync(publishCommand);
 };
 
 // returns GitHub-flavored markdown with some instructions on how to install a branch package with npm & yarn
@@ -164,9 +172,9 @@ try {
   const nameAndVersion = `${name}@${uniqueVersion}`;
   const commentBody = getPullRequestComment(nameAndVersion);
 
-  setNpmToken()
-  updatePackageVersion(uniqueVersion)
-  publishPackage()
+  setNpmToken();
+  updatePackageVersion(uniqueVersion);
+  publishPackage();
   await postCommentToPullRequest(githubClient, commentBody);
 } catch (error) {
   core.setFailed(error.message);

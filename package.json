@@ -26,5 +26,8 @@
   "bugs": {
     "url": "https://github.com/wistia/publish-branch-to-npm/issues"
   },
-  "homepage": "https://github.com/wistia/publish-branch-to-npm#readme"
+  "homepage": "https://github.com/wistia/publish-branch-to-npm#readme",
+  "dependencies": {
+    "@actions/github": "^5.0.0"
+  }
 }

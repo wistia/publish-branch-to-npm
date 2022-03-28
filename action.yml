@@ -8,6 +8,10 @@ inputs:
   npm_token:
     description: 'npm authorization token'
     required: true
+  dry_run:
+    description: 'if true, will run without actually publishing to npm'
+    required: false
+    default: false
 
 runs:
   using: 'node16'

@@ -1,0 +1,18 @@
+name: 'Publish branch to npm'
+description: 'For a repo containing an npm package, this will publish release-candidate-versioned packages to npm'
+
+inputs:
+  github_token:
+    description: 'GitHub authorization token'
+    required: true
+  npm_token:
+    description: 'npm authorization token'
+    required: true
+
+runs:
+  using: 'node16'
+  main: 'dist/index.mjs'
+
+branding:
+  icon: package
+  color: red

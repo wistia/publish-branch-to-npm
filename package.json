@@ -7,6 +7,10 @@
     "prepare": "ncc build index.mjs -o dist --source-map --license licenses.txt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "@actions/github": "^5.0.0"
+  },
   "devDependencies": {
     "@vercel/ncc": "^0.33.3"
   },
@@ -26,8 +30,5 @@
   "bugs": {
     "url": "https://github.com/wistia/publish-branch-to-npm/issues"
   },
-  "homepage": "https://github.com/wistia/publish-branch-to-npm#readme",
-  "dependencies": {
-    "@actions/github": "^5.0.0"
-  }
+  "homepage": "https://github.com/wistia/publish-branch-to-npm#readme"
 }

@@ -3,6 +3,7 @@ import core from '@actions/core';
 import { context } from '@actions/github';
 
 import {
+  coerceToBoolean,
   getUniqueVersion,
   generatePullRequestComment,
   getCommentIdentifier,
@@ -68,7 +69,7 @@ try {
     throw new Error('No npm token provided');
   }
 
-  const isDryRun = core.getInput('dry_run');
+  const isDryRun = coerceToBoolean(core.getInput('dry_run'));
   const githubClient = getGithubClient(githubToken);
   const commitHash = context.payload.after;
   const { name, currentVersion } = loadPackageJson();

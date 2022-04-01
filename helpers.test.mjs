@@ -1,6 +1,7 @@
 import test from 'ava';
 
 import {
+  coerceToBoolean,
   generatePullRequestComment,
   getCommentId,
   getCommentIdentifier,
@@ -38,6 +39,17 @@ test('getGithubClient()', (t) => {
 
 test('getCommentIdentifier()', (t) => {
   t.is(getCommentIdentifier(), '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->');
+});
+
+test('coerceToBoolean()', (t) => {
+  t.is(coerceToBoolean('true'), true);
+  t.is(coerceToBoolean('false'), false);
+  t.is(coerceToBoolean(true), true);
+  t.is(coerceToBoolean(false), false);
+  t.is(coerceToBoolean(null), false);
+  t.is(coerceToBoolean(undefined), false);
+  t.is(coerceToBoolean('string'), true);
+  t.is(coerceToBoolean(NaN), false);
 });
 
 test('getUniqueVersion()', (t) => {

@@ -5,7 +5,7 @@
   "main": "dist/index.mjs",
   "scripts": {
     "prepare": "ncc build index.mjs -o dist --source-map --license licenses.txt",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava"
   },
   "dependencies": {
     "@actions/core": "^1.6.0",

@@ -8386,6 +8386,7 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("zlib");
 
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
+  "I": () => (/* binding */ coerceToBoolean),
   "Jj": () => (/* binding */ generatePullRequestComment),
   "v2": () => (/* binding */ getCommentId),
   "lY": () => (/* binding */ getCommentIdentifier),
@@ -8492,6 +8493,14 @@ const loadPackageJson = () => {
   return { name, currentVersion };
 };
 
+// Converts a boolean string value `value` into a boolean. If passed something other than 'true' or 'false' will coerce value to boolean.
+function coerceToBoolean(value) {
+  if (value === 'true' || value === 'false') {
+    return value === 'true';
+  }
+  return Boolean(value);
+}
+
 // returns GitHub-flavored markdown with some instructions on how to install a branch package with npm & yarn
 // GitHub doesn't allow text colors in markdown so we use the diff code-colorization
 // to get a light grey for displaying date & time
@@ -8593,7 +8602,7 @@ try {
     throw new Error('No npm token provided');
   }
 
-  const isDryRun = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('dry_run');
+  const isDryRun = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .coerceToBoolean */ .I)(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('dry_run'));
   const githubClient = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getGithubClient */ .XZ)(githubToken);
   const commitHash = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.after;
   const { name, currentVersion } = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .loadPackageJson */ .a$)();

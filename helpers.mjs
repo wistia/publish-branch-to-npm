@@ -79,6 +79,14 @@ export const loadPackageJson = () => {
   return { name, currentVersion };
 };
 
+// Converts a boolean string value `value` into a boolean. If passed something other than 'true' or 'false' will coerce value to boolean.
+export function coerceToBoolean(value) {
+  if (value === 'true' || value === 'false') {
+    return value === 'true';
+  }
+  return Boolean(value);
+}
+
 // returns GitHub-flavored markdown with some instructions on how to install a branch package with npm & yarn
 // GitHub doesn't allow text colors in markdown so we use the diff code-colorization
 // to get a light grey for displaying date & time

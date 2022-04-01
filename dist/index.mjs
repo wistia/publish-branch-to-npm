@@ -8289,13 +8289,6 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("child_proces
 
 /***/ }),
 
-/***/ 6113:
-/***/ ((module) => {
-
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("crypto");
-
-/***/ }),
-
 /***/ 2361:
 /***/ ((module) => {
 
@@ -8345,13 +8338,6 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("path");
 
 /***/ }),
 
-/***/ 7282:
-/***/ ((module) => {
-
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("process");
-
-/***/ }),
-
 /***/ 5477:
 /***/ ((module) => {
 
@@ -8394,156 +8380,122 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("zlib");
 
 /***/ }),
 
-/***/ 2331:
-/***/ ((__webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
-
-__nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__) => {
-/* harmony import */ var process__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7282);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(1017);
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(7147);
-/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(2081);
-/* harmony import */ var crypto__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(6113);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(2186);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(5438);
+/***/ 4113:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  "Jj": () => (/* binding */ generatePullRequestComment),
+  "v2": () => (/* binding */ getCommentId),
+  "lY": () => (/* binding */ getCommentIdentifier),
+  "XZ": () => (/* binding */ getGithubClient),
+  "UW": () => (/* binding */ getNpmAuthCommand),
+  "Y7": () => (/* binding */ getPackageNameAndVersion),
+  "LE": () => (/* binding */ getPublishPackageCommand),
+  "an": () => (/* binding */ getUniqueVersion),
+  "jV": () => (/* binding */ getUpdatePackageVersionCommand),
+  "a$": () => (/* binding */ loadPackageJson)
+});
+
+// UNUSED EXPORTS: getTrimmedPackageVersion
+
+;// CONCATENATED MODULE: external "crypto"
+const external_crypto_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("crypto");
+// EXTERNAL MODULE: external "path"
+var external_path_ = __nccwpck_require__(1017);
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(7147);
+;// CONCATENATED MODULE: external "process"
+const external_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("process");
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(5438);
+;// CONCATENATED MODULE: ./helpers.mjs
 
 
 
 
 
-
-const { GITHUB_WORKSPACE } = process__WEBPACK_IMPORTED_MODULE_0__.env;
-
-const commentIdentifier = '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->';
 
 // returns an Octokit client that we use to make PR comments
-const getGithubClient = () => {
-  const githubToken = _actions_core__WEBPACK_IMPORTED_MODULE_5__.getInput('github_token');
-
-  if (!githubToken) {
-    throw new Error('No GitHub token provided');
-  }
-
-  if (!_actions_github__WEBPACK_IMPORTED_MODULE_6__.context.issue.number) {
-    throw new Error('This is not a PR or commenting is disabled.');
-  }
-
-  const client = (0,_actions_github__WEBPACK_IMPORTED_MODULE_6__.getOctokit)(githubToken);
+const getGithubClient = (githubToken) => {
+  const client = (0,github.getOctokit)(githubToken);
 
   if (!client) {
-    throw new Error('Client could not be created; ensure sure that GitHub token is correct.');
+    throw new Error('Client could not be created; ensure sure that GitHub token is correct');
   }
 
   return client;
 };
 
-// iterate through comment list to find one that begins with the
-// hidden identifier we added in getPullRequestComment()
-const findComment = async (client) => {
-  const options = {
-    owner: _actions_github__WEBPACK_IMPORTED_MODULE_6__.context.issue.owner,
-    repo: _actions_github__WEBPACK_IMPORTED_MODULE_6__.context.issue.repo,
-    issue_number: _actions_github__WEBPACK_IMPORTED_MODULE_6__.context.issue.number,
-  };
-  const comments = await client.rest.issues.listComments(options);
+// string used to identify a comment in a PR made by this action
+const getCommentIdentifier = () => '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->';
 
-  let commentId = null;
+// returns just the beginning X.X.X part of the version
+const getTrimmedPackageVersion = (version) =>
+  version.trim().split(/[.-]/).slice(0, 3).join('.');
 
-  comments.data.forEach(({ body, id }) => {
-    if (body.startsWith(commentIdentifier)) {
-      commentId = id;
-    }
-  });
-
-  return commentId;
-};
-
-// posts a comment to the PR if none have been posted yet, but any new posts
-// (for example, when a new commit is pushed to the PR) will update original comment
-// so that there is only ever a single comment being made by this action
-const postCommentToPullRequest = async (client, commentBody) => {
-  const commentId = await findComment(client);
-
-  if (commentId) {
-    await client.rest.issues.updateComment({
-      owner: _actions_github__WEBPACK_IMPORTED_MODULE_6__.context.issue.owner,
-      repo: _actions_github__WEBPACK_IMPORTED_MODULE_6__.context.issue.repo,
-      comment_id: commentId,
-      body: commentBody,
-    });
-    return;
-  }
-
-  await client.rest.issues.createComment({
-    issue_number: _actions_github__WEBPACK_IMPORTED_MODULE_6__.context.issue.number,
-    owner: _actions_github__WEBPACK_IMPORTED_MODULE_6__.context.repo.owner,
-    repo: _actions_github__WEBPACK_IMPORTED_MODULE_6__.context.repo.repo,
-    body: commentBody,
-  });
-};
-
-// loads package.json from repo using this action and returns the package name
-// and just the beginning X.X.X part of the version
-const getPackageJson = () => {
-  const packageJsonFilepath = (0,path__WEBPACK_IMPORTED_MODULE_1__.join)(GITHUB_WORKSPACE, 'package.json');
-  const packageJson = JSON.parse((0,fs__WEBPACK_IMPORTED_MODULE_2__.readFileSync)(packageJsonFilepath, 'utf8'));
-
-  if (!packageJson) {
-    throw new Error('No package.json file could be found');
-  }
-
-  const { name, version } = packageJson;
-  const currentVersion = version.trim().split(/[.-]/).slice(0, 3).join('.');
-  return { name, currentVersion };
-};
-
-// current version + 8 chars of a UUID + 8 chars of the last commit SHA
+// current version + 8 chars of a UUID + 8 chars of the last commit hash
 // must be valid semver https://semver.org/
-const getUniqueVersion = (currentVersion, commitSha) => {
-  const randomish = crypto__WEBPACK_IMPORTED_MODULE_4__.randomUUID().substring(0, 8);
-  const sha = commitSha.substring(0, 7);
-  return `${currentVersion}-beta.${randomish}.${sha}`;
+const getUniqueVersion = (currentVersion, commitHash) => {
+  const randomish = external_crypto_namespaceObject.randomUUID().substring(0, 8);
+  const hash = commitHash.substring(0, 7);
+  return `${currentVersion}-beta.${randomish}.${hash}`;
 };
+
+// iterate through comment list to find one that begins with the
+// hidden identifier we added in generatePullRequestComment()
+const getCommentId = (commentList, commentIdentifier) => {
+  const comment = commentList.find(({ body }) => body.startsWith(commentIdentifier));
+
+  return comment !== undefined ? comment.id : null;
+};
+
+const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniqueVersion}`;
 
 // set auth token to allow publishing in CI
-const setNpmToken = () => {
-  const npmToken = _actions_core__WEBPACK_IMPORTED_MODULE_5__.getInput('npm_token');
+const getNpmAuthCommand = (npmToken) =>
+  `npm config set //registry.npmjs.org/:_authToken ${npmToken}`;
 
-  if (!npmToken) {
-    throw new Error('No npm token provided');
-  }
-
-  const setTokenCommand = `npm config set //registry.npmjs.org/:_authToken ${npmToken}`;
-  (0,child_process__WEBPACK_IMPORTED_MODULE_3__.execSync)(setTokenCommand);
-};
-
-// update version in package.json (does not get committed)
-const updatePackageVersion = (uniqueVersion) => {
-  const versionCommand = `npm version --no-git-tag-version ${uniqueVersion}`;
-  (0,child_process__WEBPACK_IMPORTED_MODULE_3__.execSync)(versionCommand);
-};
+// updates version in package.json
+const getUpdatePackageVersionCommand = (uniqueVersion) =>
+  `npm version --git-tag-version false ${uniqueVersion}`;
 
 // publish with "beta" tag since if we do not specify a tag, "latest" will be used by default
-const publishPackage = () => {
-  const isDryRun = _actions_core__WEBPACK_IMPORTED_MODULE_5__.getInput('dry_run');
+const getPublishPackageCommand = (isDryRun) => {
   let publishCommand = `npm publish --verbose --tag beta`;
 
   if (isDryRun) {
     publishCommand = `${publishCommand} --dry-run`;
   }
 
-  (0,child_process__WEBPACK_IMPORTED_MODULE_3__.execSync)(publishCommand);
+  return publishCommand;
+};
+
+// loads package.json from repo and returns the package name & version
+const loadPackageJson = () => {
+  const { GITHUB_WORKSPACE } = external_process_namespaceObject.env;
+
+  if (!GITHUB_WORKSPACE) {
+    throw new Error('GITHUB_WORKSPACE env var missing');
+  }
+
+  const packageJsonFilepath = (0,external_path_.join)(GITHUB_WORKSPACE, 'package.json');
+  const packageJson = JSON.parse((0,external_fs_.readFileSync)(packageJsonFilepath, 'utf8'));
+
+  if (!packageJson) {
+    throw new Error('No package.json file could be found');
+  }
+
+  const { name, version } = packageJson;
+  const currentVersion = getTrimmedPackageVersion(version);
+  return { name, currentVersion };
 };
 
 // returns GitHub-flavored markdown with some instructions on how to install a branch package with npm & yarn
 // GitHub doesn't allow text colors in markdown so we use the diff code-colorization
 // to get a light grey for displaying date & time
-const getPullRequestComment = (nameAndVersion) => {
-  if (!nameAndVersion) {
-    throw new Error('Package version must be provided to getPullRequestComment');
-  }
-
+const generatePullRequestComment = (packageNameAndVersion, commentIdentifier) => {
   const currentDate = new Date();
 
   return `${commentIdentifier}
@@ -8552,13 +8504,13 @@ const getPullRequestComment = (nameAndVersion) => {
   ### yarn:
 
   \`\`\`shell
-  yarn upgrade ${nameAndVersion}
+  yarn upgrade ${packageNameAndVersion}
   \`\`\`
 
   ### npm:
 
   \`\`\`shell
-  npm install ${nameAndVersion}
+  npm install ${packageNameAndVersion}
   \`\`\`
 
   _Note: if you continue to push commits to this PR, new packages will be deployed and this comment will update itself with the new version to install._
@@ -8571,20 +8523,99 @@ const getPullRequestComment = (nameAndVersion) => {
   `;
 };
 
-try {
-  const githubClient = getGithubClient();
-  const { name, currentVersion } = getPackageJson();
-  const commitSha = _actions_github__WEBPACK_IMPORTED_MODULE_6__.context.payload.after;
-  const uniqueVersion = getUniqueVersion(currentVersion, commitSha);
-  const nameAndVersion = `${name}@${uniqueVersion}`;
-  const commentBody = getPullRequestComment(nameAndVersion);
 
-  setNpmToken()
-  updatePackageVersion(uniqueVersion)
-  publishPackage()
+/***/ }),
+
+/***/ 2331:
+/***/ ((__webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
+
+__nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__) => {
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2081);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(2186);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(5438);
+/* harmony import */ var _helpers_mjs__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(4113);
+
+
+
+
+
+
+// returns an array of comments from current PR
+const getCommentList = async (client, issue) => {
+  const options = {
+    owner: issue.owner,
+    repo: issue.repo,
+    issue_number: issue.number,
+  };
+
+  return await client.rest.issues.listComments(options);
+};
+
+// posts a comment to the PR if none have been posted yet, but any new posts
+// (for example, when a new commit is pushed to the PR) will update original comment
+// so that there is only ever a single comment being made by this action
+const postCommentToPullRequest = async (client, commentBody) => {
+  if (!_actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue.number) {
+    throw new Error('This is not a PR or commenting is disabled');
+  }
+
+  const { data: commentList } = await getCommentList(client, _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue);
+  const commentId = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getCommentId */ .v2)(commentList, (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getCommentIdentifier */ .lY)());
+
+  if (commentId) {
+    await client.rest.issues.updateComment({
+      issue_number: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue.number,
+      owner: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue.owner,
+      repo: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue.repo,
+      body: commentBody,
+      comment_id: commentId,
+    });
+    return;
+  }
+
+  await client.rest.issues.createComment({
+    issue_number: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue.number,
+    owner: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.repo.owner,
+    repo: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.repo.repo,
+    body: commentBody,
+  });
+};
+
+try {
+  const githubToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github_token');
+  const npmToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('npm_token');
+
+  if (!githubToken) {
+    throw new Error('No GitHub token provided');
+  }
+
+  if (!npmToken) {
+    throw new Error('No npm token provided');
+  }
+
+  const isDryRun = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('dry_run');
+  const githubClient = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getGithubClient */ .XZ)(githubToken);
+  const commitHash = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.after;
+  const { name, currentVersion } = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .loadPackageJson */ .a$)();
+  const uniqueVersion = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getUniqueVersion */ .an)(currentVersion, commitHash);
+  const commentBody = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .generatePullRequestComment */ .Jj)(
+    (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getPackageNameAndVersion */ .Y7)(name, uniqueVersion),
+    (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getCommentIdentifier */ .lY)(),
+  );
+
+  // set auth token to allow publishing in CI
+  (0,child_process__WEBPACK_IMPORTED_MODULE_0__.execSync)((0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getNpmAuthCommand */ .UW)(npmToken));
+
+  // update version in package.json (does not get committed)
+  (0,child_process__WEBPACK_IMPORTED_MODULE_0__.execSync)((0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getUpdatePackageVersionCommand */ .jV)(uniqueVersion));
+
+  // publish package
+  (0,child_process__WEBPACK_IMPORTED_MODULE_0__.execSync)((0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getPublishPackageCommand */ .LE)(isDryRun));
+
+  // post comment to PR
   await postCommentToPullRequest(githubClient, commentBody);
 } catch (error) {
-  _actions_core__WEBPACK_IMPORTED_MODULE_5__.setFailed(error.message);
+  _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(error.message);
 }
 
 __webpack_handle_async_dependencies__();
@@ -8704,6 +8735,23 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 		}).then(outerResolve, reject);
 /******/ 		isEvaluating = false;
 /******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/define property getters */
+/******/ (() => {
+/******/ 	// define getter functions for harmony exports
+/******/ 	__nccwpck_require__.d = (exports, definition) => {
+/******/ 		for(var key in definition) {
+/******/ 			if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 			}
+/******/ 		}
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/hasOwnProperty shorthand */
+/******/ (() => {
+/******/ 	__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ })();
 /******/ 
 /******/ /* webpack/runtime/compat */

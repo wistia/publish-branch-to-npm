@@ -8557,7 +8557,7 @@ const getCommentList = async (client, issue) => {
     issue_number: issue.number,
   };
 
-  return await client.rest.issues.listComments(options);
+  return client.rest.issues.listComments(options);
 };
 
 // posts a comment to the PR if none have been posted yet, but any new posts

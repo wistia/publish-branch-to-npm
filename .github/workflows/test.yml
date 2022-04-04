@@ -1,0 +1,80 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Run linters
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2.3.4
+
+      - name: Parse .tool-versions
+        uses: wistia/parse-tool-versions@v1.0
+
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.NODEJS_TOOL_VERSION }}
+
+      - name: Cache node_modules
+        uses: actions/cache@v2
+        id: cache-modules
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node${{ env.NODEJS_TOOL_VERSION }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node${{ env.NODEJS_TOOL_VERSION }}-
+
+      - name: Install Node.js dependencies
+        if: steps.cache-modules.outputs.cache-hit != 'true'
+        run: yarn --frozen-lockfile
+
+      - name: Run eslint
+        uses: wearerequired/lint-action@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          eslint: true
+          eslint_extensions: mjs
+
+  unit-tests:
+    name: Run unit tests
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2.3.4
+
+      - name: Parse .tool-versions
+        uses: wistia/parse-tool-versions@v1.0
+
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.NODEJS_TOOL_VERSION }}
+
+      - name: Cache node_modules
+        uses: actions/cache@v2.1.2
+        id: cache-modules
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node${{ env.NODEJS_TOOL_VERSION }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node${{ env.NODEJS_TOOL_VERSION }}-
+
+      - name: Install Node.js dependencies
+        if: steps.cache-modules.outputs.cache-hit != 'true'
+        run: yarn --frozen-lockfile
+
+      - name: Run unit tests
+        run: npm run test
+        env:
+          NODE_ENV: test

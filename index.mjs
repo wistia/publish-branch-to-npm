@@ -62,6 +62,7 @@ try {
   const npmToken = core.getInput('npm_token');
   const commitHash = context.payload.after;
 
+  // early exit because we cannot proceed without these variables
   if (!githubToken) {
     throw new Error('No GitHub token provided');
   }

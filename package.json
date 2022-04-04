@@ -4,8 +4,9 @@
   "description": "GitHub action created to publish a branch of an npm package repo to npm registry",
   "main": "dist/index.mjs",
   "scripts": {
+    "build": "ncc build index.mjs -o dist --source-map --license licenses.txt",
     "lint": "eslint --cache --ext mjs .",
-    "prepare": "ncc build index.mjs -o dist --source-map --license licenses.txt",
+    "preversion": "npm run build && git add -A dist",
     "test": "ava"
   },
   "dependencies": {

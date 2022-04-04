@@ -18,7 +18,7 @@ GitHub action to publish a pre-release version of an npm package to the registry
 
 ### github_token
 
-A token that GitHub automatically creates and stores in a GITHUB_TOKEN secret to use in your workflow.
+A token that GitHub automatically creates and stores in a `GITHUB_TOKEN` secret to use in your workflow.
 
 ### npm_token
 

@@ -4,6 +4,58 @@ import { readFileSync } from 'fs';
 import { env } from 'process';
 import { getOctokit } from '@actions/github';
 
+// string used to identify a comment in a PR made by this action
+export const getCommentIdentifier = () => '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->';
+
+// iterate through comment list to find one that begins with the
+// hidden identifier we added in generatePullRequestComment()
+export const getCommentId = (commentList, commentIdentifier) => {
+  const comment = commentList.find(({ body }) => body.startsWith(commentIdentifier));
+
+  return comment !== undefined ? comment.id : null;
+};
+
+// returns an array of comments from current PR
+export const getCommentList = async (client, issue) => {
+  const options = {
+    owner: issue.owner,
+    repo: issue.repo,
+    issue_number: issue.number,
+  };
+
+  return client.rest.issues.listComments(options);
+};
+
+// posts a comment to the PR if none have been posted yet, but any new posts
+// (for example, when a new commit is pushed to the PR) will update original comment
+// so that there is only ever a single comment being made by this action
+export const postCommentToPullRequest = async (context, client, commentBody) => {
+  if (!context.issue.number) {
+    throw new Error('This is not a PR or commenting is disabled');
+  }
+
+  const { data: commentList } = await getCommentList(client, context.issue);
+  const commentId = getCommentId(commentList, getCommentIdentifier());
+
+  if (commentId) {
+    await client.rest.issues.updateComment({
+      issue_number: context.issue.number,
+      owner: context.issue.owner,
+      repo: context.issue.repo,
+      body: commentBody,
+      comment_id: commentId,
+    });
+    return;
+  }
+
+  await client.rest.issues.createComment({
+    issue_number: context.issue.number,
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    body: commentBody,
+  });
+};
+
 // returns an Octokit client that we use to make PR comments
 export const getGithubClient = (githubToken) => {
   const client = getOctokit(githubToken);
@@ -15,9 +67,6 @@ export const getGithubClient = (githubToken) => {
   return client;
 };
 
-// string used to identify a comment in a PR made by this action
-export const getCommentIdentifier = () => '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->';
-
 // returns just the beginning X.X.X part of the version
 export const getTrimmedPackageVersion = (version) =>
   version.trim().split(/[.-]/).slice(0, 3).join('.');
@@ -28,14 +77,6 @@ export const getUniqueVersion = (currentVersion, commitHash) => {
   const randomish = crypto.randomUUID().substring(0, 8);
   const hash = commitHash.substring(0, 7);
   return `${currentVersion}-beta.${randomish}.${hash}`;
-};
-
-// iterate through comment list to find one that begins with the
-// hidden identifier we added in generatePullRequestComment()
-export const getCommentId = (commentList, commentIdentifier) => {
-  const comment = commentList.find(({ body }) => body.startsWith(commentIdentifier));
-
-  return comment !== undefined ? comment.id : null;
 };
 
 export const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniqueVersion}`;

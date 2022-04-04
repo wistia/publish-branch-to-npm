@@ -96,5 +96,6 @@ try {
   // post comment to PR
   await postCommentToPullRequest(githubClient, commentBody);
 } catch (error) {
+  console.log(error); // eslint-disable-line
   core.setFailed(error.message);
 }

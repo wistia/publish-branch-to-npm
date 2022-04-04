@@ -8593,6 +8593,7 @@ const postCommentToPullRequest = async (client, commentBody) => {
 try {
   const githubToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github_token');
   const npmToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('npm_token');
+  const commitHash = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.after;
 
   if (!githubToken) {
     throw new Error('No GitHub token provided');
@@ -8602,9 +8603,12 @@ try {
     throw new Error('No npm token provided');
   }
 
+  if (!commitHash) {
+    throw new Error('Current commit could not be determined');
+  }
+
   const isDryRun = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .coerceToBoolean */ .I)(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('dry_run'));
   const githubClient = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getGithubClient */ .XZ)(githubToken);
-  const commitHash = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.after;
   const { name, currentVersion } = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .loadPackageJson */ .a$)();
   const uniqueVersion = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getUniqueVersion */ .an)(currentVersion, commitHash);
   const commentBody = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .generatePullRequestComment */ .Jj)(

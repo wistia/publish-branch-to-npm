@@ -60,6 +60,7 @@ const postCommentToPullRequest = async (client, commentBody) => {
 try {
   const githubToken = core.getInput('github_token');
   const npmToken = core.getInput('npm_token');
+  const commitHash = context.payload.after;
 
   if (!githubToken) {
     throw new Error('No GitHub token provided');
@@ -69,9 +70,12 @@ try {
     throw new Error('No npm token provided');
   }
 
+  if (!commitHash) {
+    throw new Error('Current commit could not be determined');
+  }
+
   const isDryRun = coerceToBoolean(core.getInput('dry_run'));
   const githubClient = getGithubClient(githubToken);
-  const commitHash = context.payload.after;
   const { name, currentVersion } = loadPackageJson();
   const uniqueVersion = getUniqueVersion(currentVersion, commitHash);
   const commentBody = generatePullRequestComment(

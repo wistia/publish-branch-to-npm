@@ -8388,7 +8388,6 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("zlib");
 __nccwpck_require__.d(__webpack_exports__, {
   "I": () => (/* binding */ coerceToBoolean),
   "Jj": () => (/* binding */ generatePullRequestComment),
-  "v2": () => (/* binding */ getCommentId),
   "lY": () => (/* binding */ getCommentIdentifier),
   "XZ": () => (/* binding */ getGithubClient),
   "UW": () => (/* binding */ getNpmAuthCommand),
@@ -8396,10 +8395,11 @@ __nccwpck_require__.d(__webpack_exports__, {
   "LE": () => (/* binding */ getPublishPackageCommand),
   "an": () => (/* binding */ getUniqueVersion),
   "jV": () => (/* binding */ getUpdatePackageVersionCommand),
-  "a$": () => (/* binding */ loadPackageJson)
+  "a$": () => (/* binding */ loadPackageJson),
+  "fb": () => (/* binding */ postCommentToPullRequest)
 });
 
-// UNUSED EXPORTS: getTrimmedPackageVersion
+// UNUSED EXPORTS: getCommentId, getCommentList, getTrimmedPackageVersion
 
 ;// CONCATENATED MODULE: external "crypto"
 const external_crypto_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("crypto");
@@ -8418,6 +8418,58 @@ var github = __nccwpck_require__(5438);
 
 
 
+// string used to identify a comment in a PR made by this action
+const getCommentIdentifier = () => '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->';
+
+// iterate through comment list to find one that begins with the
+// hidden identifier we added in generatePullRequestComment()
+const getCommentId = (commentList, commentIdentifier) => {
+  const comment = commentList.find(({ body }) => body.startsWith(commentIdentifier));
+
+  return comment !== undefined ? comment.id : null;
+};
+
+// returns an array of comments from current PR
+const getCommentList = async (client, issue) => {
+  const options = {
+    owner: issue.owner,
+    repo: issue.repo,
+    issue_number: issue.number,
+  };
+
+  return client.rest.issues.listComments(options);
+};
+
+// posts a comment to the PR if none have been posted yet, but any new posts
+// (for example, when a new commit is pushed to the PR) will update original comment
+// so that there is only ever a single comment being made by this action
+const postCommentToPullRequest = async (context, client, commentBody) => {
+  if (!context.issue.number) {
+    throw new Error('This is not a PR or commenting is disabled');
+  }
+
+  const { data: commentList } = await getCommentList(client, context.issue);
+  const commentId = getCommentId(commentList, getCommentIdentifier());
+
+  if (commentId) {
+    await client.rest.issues.updateComment({
+      issue_number: context.issue.number,
+      owner: context.issue.owner,
+      repo: context.issue.repo,
+      body: commentBody,
+      comment_id: commentId,
+    });
+    return;
+  }
+
+  await client.rest.issues.createComment({
+    issue_number: context.issue.number,
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    body: commentBody,
+  });
+};
+
 // returns an Octokit client that we use to make PR comments
 const getGithubClient = (githubToken) => {
   const client = (0,github.getOctokit)(githubToken);
@@ -8429,9 +8481,6 @@ const getGithubClient = (githubToken) => {
   return client;
 };
 
-// string used to identify a comment in a PR made by this action
-const getCommentIdentifier = () => '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->';
-
 // returns just the beginning X.X.X part of the version
 const getTrimmedPackageVersion = (version) =>
   version.trim().split(/[.-]/).slice(0, 3).join('.');
@@ -8442,14 +8491,6 @@ const getUniqueVersion = (currentVersion, commitHash) => {
   const randomish = external_crypto_namespaceObject.randomUUID().substring(0, 8);
   const hash = commitHash.substring(0, 7);
   return `${currentVersion}-beta.${randomish}.${hash}`;
-};
-
-// iterate through comment list to find one that begins with the
-// hidden identifier we added in generatePullRequestComment()
-const getCommentId = (commentList, commentIdentifier) => {
-  const comment = commentList.find(({ body }) => body.startsWith(commentIdentifier));
-
-  return comment !== undefined ? comment.id : null;
 };
 
 const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniqueVersion}`;
@@ -8549,52 +8590,14 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 
 
-// returns an array of comments from current PR
-const getCommentList = async (client, issue) => {
-  const options = {
-    owner: issue.owner,
-    repo: issue.repo,
-    issue_number: issue.number,
-  };
-
-  return client.rest.issues.listComments(options);
-};
-
-// posts a comment to the PR if none have been posted yet, but any new posts
-// (for example, when a new commit is pushed to the PR) will update original comment
-// so that there is only ever a single comment being made by this action
-const postCommentToPullRequest = async (client, commentBody) => {
-  if (!_actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue.number) {
-    throw new Error('This is not a PR or commenting is disabled');
-  }
-
-  const { data: commentList } = await getCommentList(client, _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue);
-  const commentId = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getCommentId */ .v2)(commentList, (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getCommentIdentifier */ .lY)());
-
-  if (commentId) {
-    await client.rest.issues.updateComment({
-      issue_number: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue.number,
-      owner: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue.owner,
-      repo: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue.repo,
-      body: commentBody,
-      comment_id: commentId,
-    });
-    return;
-  }
-
-  await client.rest.issues.createComment({
-    issue_number: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue.number,
-    owner: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.repo.owner,
-    repo: _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.repo.repo,
-    body: commentBody,
-  });
-};
-
 try {
+  // action inputs
   const githubToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github_token');
   const npmToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('npm_token');
-  const commitHash = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.after;
+  const commitHash = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('commit');
+  const isDryRun = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('dry_run');
 
+  // early exit because we cannot proceed without these variables
   if (!githubToken) {
     throw new Error('No GitHub token provided');
   }
@@ -8604,10 +8607,9 @@ try {
   }
 
   if (!commitHash) {
-    throw new Error('Current commit could not be determined');
+    throw new Error('Current commit hash could not be determined');
   }
 
-  const isDryRun = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .coerceToBoolean */ .I)(_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('dry_run'));
   const githubClient = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getGithubClient */ .XZ)(githubToken);
   const { name, currentVersion } = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .loadPackageJson */ .a$)();
   const uniqueVersion = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getUniqueVersion */ .an)(currentVersion, commitHash);
@@ -8623,11 +8625,12 @@ try {
   (0,child_process__WEBPACK_IMPORTED_MODULE_0__.execSync)((0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getUpdatePackageVersionCommand */ .jV)(uniqueVersion));
 
   // publish package
-  (0,child_process__WEBPACK_IMPORTED_MODULE_0__.execSync)((0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getPublishPackageCommand */ .LE)(isDryRun));
+  (0,child_process__WEBPACK_IMPORTED_MODULE_0__.execSync)((0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .getPublishPackageCommand */ .LE)((0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .coerceToBoolean */ .I)(isDryRun)));
 
   // post comment to PR
-  await postCommentToPullRequest(githubClient, commentBody);
+  await (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_3__/* .postCommentToPullRequest */ .fb)(_actions_github__WEBPACK_IMPORTED_MODULE_2__.context, githubClient, commentBody);
 } catch (error) {
+  console.log(error); // eslint-disable-line
   _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(error.message);
 }
 

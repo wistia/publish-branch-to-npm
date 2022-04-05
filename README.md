@@ -27,3 +27,7 @@ An npm access token. See [https://docs.npmjs.com/creating-and-viewing-access-tok
 ### dry_run
 
 As of `npm@6`, does everything publish would do except actually publishing to the registry. Reports the details of what would have been published, see [npm publish docs](https://docs.npmjs.com/cli/v7/commands/npm-publish).
+
+### commit
+
+The SHA-1 hash of the last commit; this is set automatically and does not need to be provided, but it can be overridden.

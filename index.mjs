@@ -20,7 +20,7 @@ try {
   // action inputs
   const githubToken = core.getInput('github_token');
   const npmToken = core.getInput('npm_token');
-  const commitHash = context.payload.after;
+  const commitHash = core.getInput('commit');
   const isDryRun = core.getInput('dry_run');
 
   // early exit because we cannot proceed without these variables

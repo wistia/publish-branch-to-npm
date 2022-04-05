@@ -18,8 +18,8 @@ import {
 
 try {
   // action inputs
-  const githubToken = core.getInput('github_token');
-  const npmToken = core.getInput('npm_token');
+  const githubToken = core.getInput('github_token', { required: true });
+  const npmToken = core.getInput('npm_token', { required: true });
   const commitHash = core.getInput('commit');
   const isDryRun = core.getInput('dry_run');
 

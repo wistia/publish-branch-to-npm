@@ -12,6 +12,10 @@ inputs:
     description: 'if true, will run without actually publishing to npm'
     required: false
     default: false
+  commit:
+    description: 'SHA-1 hash of the last commit'
+    required: false
+    default: '${{ github.event.pull_request.head.sha }}'
 
 runs:
   using: 'node16'

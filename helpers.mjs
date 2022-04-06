@@ -2,7 +2,17 @@ import crypto from 'crypto';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import { env } from 'process';
+import core from '@actions/core';
 import { getOctokit } from '@actions/github';
+
+// retrieves inputs that are defined in action.yml
+// errors are automatically thrown if required inputs are not present
+export const getInputs = () => ({
+  githubToken: core.getInput('github_token', { required: true }),
+  npmToken: core.getInput('npm_token', { required: true }),
+  commitHash: core.getInput('commit', { required: true }),
+  isDryRun: core.getInput('dry_run') || false,
+});
 
 // string used to identify a comment in a PR made by this action
 export const getCommentIdentifier = () => '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->';

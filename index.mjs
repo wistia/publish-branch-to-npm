@@ -7,6 +7,7 @@ import {
   generatePullRequestComment,
   getCommentIdentifier,
   getGithubClient,
+  getInputs,
   getNpmAuthCommand,
   getPackageNameAndVersion,
   getPublishPackageCommand,
@@ -17,25 +18,7 @@ import {
 } from './helpers.mjs';
 
 try {
-  // action inputs
-  const githubToken = core.getInput('github_token', { required: true });
-  const npmToken = core.getInput('npm_token', { required: true });
-  const commitHash = core.getInput('commit');
-  const isDryRun = core.getInput('dry_run');
-
-  // early exit because we cannot proceed without these variables
-  if (!githubToken) {
-    throw new Error('No GitHub token provided');
-  }
-
-  if (!npmToken) {
-    throw new Error('No npm token provided');
-  }
-
-  if (!commitHash) {
-    throw new Error('Current commit hash could not be determined');
-  }
-
+  const { githubToken, npmToken, commitHash, isDryRun } = getInputs();
   const githubClient = getGithubClient(githubToken);
   const { name, currentVersion } = loadPackageJson();
   const uniqueVersion = getUniqueVersion(currentVersion, commitHash);

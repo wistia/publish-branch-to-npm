@@ -98,6 +98,9 @@ export const getPublishPackageCommand = (isDryRun) => {
   return publishCommand;
 };
 
+// returns a fully qualified package and version for installation instructions
+export const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniqueVersion}`;
+
 // loads package.json from repo and returns the package name & version
 export const loadPackageJson = () => {
   const { GITHUB_WORKSPACE } = env;

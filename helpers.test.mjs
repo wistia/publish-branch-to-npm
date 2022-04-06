@@ -6,6 +6,7 @@ import {
   getCommentId,
   getGithubClient,
   getNpmAuthCommand,
+  getPackageNameAndVersion,
   getPublishPackageCommand,
   getTrimmedPackageVersion,
   getUniqueVersion,
@@ -65,6 +66,16 @@ test('getUpdatePackageVersionCommand()', (t) => {
   t.is(
     getUpdatePackageVersionCommand(fakePackageVersion),
     'npm version --git-tag-version false 2.10.3-beta.12345678.0000000',
+  );
+});
+
+test('getPackageNameAndVersion()', (t) => {
+  const fakeName = '@namespace/package-name';
+  const fakePackageVersion = '2.10.3-beta.12345678.0000000';
+
+  t.is(
+    getPackageNameAndVersion(fakeName, fakePackageVersion),
+    '@namespace/package-name@2.10.3-beta.12345678.0000000',
   );
 });
 

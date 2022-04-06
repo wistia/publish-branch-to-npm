@@ -1,5 +1,5 @@
 name: 'Publish branch to npm'
-description: 'For a repo containing an npm package, this will publish release-candidate-versioned packages to npm'
+description: 'Publish a pre-release version of an npm package to the registry'
 author: 'Wistia Engineering'
 
 inputs:
@@ -9,14 +9,14 @@ inputs:
   npm_token:
     description: 'npm authorization token'
     required: true
+  commit_hash:
+    description: 'SHA-1 hash of the commit to publish'
+    required: true
+    default: '${{ github.event.pull_request.head.sha }}'
   dry_run:
-    description: 'if true, will run without actually publishing to npm'
+    description: 'If true, will run action normally except it will not publish anything to npm'
     required: false
     default: false
-  commit:
-    description: 'SHA-1 hash of the last commit'
-    required: false
-    default: '${{ github.event.pull_request.head.sha }}'
 
 runs:
   using: 'node16'

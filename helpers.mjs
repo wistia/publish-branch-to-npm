@@ -10,7 +10,7 @@ import { getOctokit, context } from '@actions/github';
 export const getInputs = () => ({
   githubToken: core.getInput('github_token', { required: true }),
   npmToken: core.getInput('npm_token', { required: true }),
-  commitHash: core.getInput('commit', { required: true }),
+  commitHash: core.getInput('commit_hash', { required: true }),
   isDryRun: core.getInput('dry_run') || false,
 });
 

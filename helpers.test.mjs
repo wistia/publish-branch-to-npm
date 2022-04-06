@@ -4,10 +4,8 @@ import {
   coerceToBoolean,
   generatePullRequestComment,
   getCommentId,
-  getCommentIdentifier,
   getGithubClient,
   getNpmAuthCommand,
-  getPackageNameAndVersion,
   getPublishPackageCommand,
   getTrimmedPackageVersion,
   getUniqueVersion,
@@ -24,10 +22,6 @@ test('getGithubClient()', (t) => {
   );
 
   t.is(error.message, 'Parameter token or opts.auth is required');
-});
-
-test('getCommentIdentifier()', (t) => {
-  t.is(getCommentIdentifier(), '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->');
 });
 
 test('coerceToBoolean()', (t) => {
@@ -56,16 +50,6 @@ test('getTrimmedPackageVersion()', (t) => {
   t.is(getTrimmedPackageVersion(fakePackageVersion1), '1.1.1');
   t.is(getTrimmedPackageVersion(fakePackageVersion2), '1.401.9');
   t.is(getTrimmedPackageVersion(fakePackageVersion3), '2.10.3');
-});
-
-test('getPackageNameAndVersion()', (t) => {
-  const fakeName = '@namespace/package-name';
-  const fakePackageVersion = '2.10.3-beta.12345678.0000000';
-
-  t.is(
-    getPackageNameAndVersion(fakeName, fakePackageVersion),
-    '@namespace/package-name@2.10.3-beta.12345678.0000000',
-  );
 });
 
 test('getNpmAuthCommand()', (t) => {

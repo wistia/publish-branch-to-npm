@@ -4,6 +4,7 @@ import core from '@actions/core';
 import {
   getInputs,
   getNpmAuthCommand,
+  getPackageNameAndVersion,
   getPublishPackageCommand,
   getUniqueVersion,
   getUpdatePackageVersionCommand,
@@ -15,6 +16,7 @@ try {
   const { npmToken, commitHash, isDryRun } = getInputs();
   const { name, currentVersion } = loadPackageJson();
   const uniqueVersion = getUniqueVersion(currentVersion, commitHash);
+  const packageNameAndVersion = getPackageNameAndVersion(name, uniqueVersion);
 
   // set auth token to allow publishing in CI
   execSync(getNpmAuthCommand(npmToken));

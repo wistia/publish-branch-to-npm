@@ -14,6 +14,21 @@ export const getInputs = () => ({
   isDryRun: core.getInput('dry_run') || false,
 });
 
+// returns an object with the eventName and boolean properties
+// indicating if it's a pull request of manual workflow dispatch
+export const getEventType = () => {
+  const eventName = env.GITHUB_EVENT_NAME;
+
+  if (!eventName) {
+    throw new Error('GITHUB_EVENT_NAME env var missing');
+  }
+
+  const isPullRequest = eventName === 'pull_request';
+  const isWorkflowDispatch = eventName === 'workflow_dispatch';
+
+  return { eventName, isPullRequest, isWorkflowDispatch };
+};
+
 // iterate through comment list to find one that begins with the
 // hidden identifier we added in generatePullRequestComment()
 export const getCommentId = (commentList, commentIdentifier) => {

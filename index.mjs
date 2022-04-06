@@ -1,15 +1,9 @@
 import { execSync } from 'child_process';
 import core from '@actions/core';
-import { context } from '@actions/github';
 
 import {
-  coerceToBoolean,
-  generatePullRequestComment,
-  getCommentIdentifier,
-  getGithubClient,
   getInputs,
   getNpmAuthCommand,
-  getPackageNameAndVersion,
   getPublishPackageCommand,
   getUniqueVersion,
   getUpdatePackageVersionCommand,
@@ -18,14 +12,9 @@ import {
 } from './helpers.mjs';
 
 try {
-  const { githubToken, npmToken, commitHash, isDryRun } = getInputs();
-  const githubClient = getGithubClient(githubToken);
+  const { npmToken, commitHash, isDryRun } = getInputs();
   const { name, currentVersion } = loadPackageJson();
   const uniqueVersion = getUniqueVersion(currentVersion, commitHash);
-  const commentBody = generatePullRequestComment(
-    getPackageNameAndVersion(name, uniqueVersion),
-    getCommentIdentifier(),
-  );
 
   // set auth token to allow publishing in CI
   execSync(getNpmAuthCommand(npmToken));
@@ -34,11 +23,11 @@ try {
   execSync(getUpdatePackageVersionCommand(uniqueVersion));
 
   // publish package
-  execSync(getPublishPackageCommand(coerceToBoolean(isDryRun)));
+  execSync(getPublishPackageCommand(isDryRun));
 
   // post comment to PR
-  await postCommentToPullRequest(context, githubClient, commentBody);
+  await postCommentToPullRequest(name, uniqueVersion);
 } catch (error) {
-  console.log(error); // eslint-disable-line
+  console.log(error); // eslint-disable-line no-console
   core.setFailed(error.message);
 }

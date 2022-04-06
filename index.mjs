@@ -9,7 +9,7 @@ import {
   getUniqueVersion,
   getUpdatePackageVersionCommand,
   loadPackageJson,
-  postCommentToPullRequest,
+  displayInstallationInstructions,
 } from './helpers.mjs';
 
 try {
@@ -27,8 +27,8 @@ try {
   // publish package
   execSync(getPublishPackageCommand(isDryRun));
 
-  // post comment to PR
-  await postCommentToPullRequest(name, uniqueVersion);
+  // display installation instructions
+  await displayInstallationInstructions(packageNameAndVersion);
 } catch (error) {
   console.log(error); // eslint-disable-line no-console
   core.setFailed(error.message);

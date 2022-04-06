@@ -1,7 +1,7 @@
 import crypto from 'crypto';
+import { env } from 'process';
 import { join } from 'path';
 import { readFileSync } from 'fs';
-import { env } from 'process';
 import core from '@actions/core';
 import { getOctokit, context } from '@actions/github';
 
@@ -103,13 +103,13 @@ export const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniq
 
 // loads package.json from repo and returns the package name & version
 export const loadPackageJson = () => {
-  const { GITHUB_WORKSPACE } = env;
+  const githubWorkspace = env.GITHUB_WORKSPACE;
 
-  if (!GITHUB_WORKSPACE) {
+  if (!githubWorkspace) {
     throw new Error('GITHUB_WORKSPACE env var missing');
   }
 
-  const packageJsonFilepath = join(GITHUB_WORKSPACE, 'package.json');
+  const packageJsonFilepath = join(githubWorkspace, 'package.json');
   const packageJson = JSON.parse(readFileSync(packageJsonFilepath, 'utf8'));
 
   if (!packageJson) {
@@ -155,7 +155,7 @@ export const generatePullRequestComment = (packageNameAndVersion, commentIdentif
 // posts a comment to the PR if none have been posted yet, but any new posts
 // (for example, when a new commit is pushed to the PR) will update original comment
 // so that there is only ever a single comment being made by this action
-export const postCommentToPullRequest = async (name, uniqueVersion) => {
+export const postCommentToPullRequest = async (packageNameAndVersion) => {
   if (!context.issue.number) {
     throw new Error('This is not a PR or commenting is disabled');
   }
@@ -164,7 +164,6 @@ export const postCommentToPullRequest = async (name, uniqueVersion) => {
   const commentIdentifier = '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->';
   const { githubToken } = getInputs();
   const githubClient = getGithubClient(githubToken);
-  const packageNameAndVersion = `${name}@${uniqueVersion}`;
   const commentBody = generatePullRequestComment(packageNameAndVersion, commentIdentifier);
   const { data: commentList } = await getCommentList(githubClient, context.issue);
   const commentId = getCommentId(commentList, commentIdentifier);
@@ -186,4 +185,12 @@ export const postCommentToPullRequest = async (name, uniqueVersion) => {
     repo: context.repo.repo,
     body: commentBody,
   });
+};
+
+export const displayInstallationInstructions = (packageNameAndVersion) => {
+  const { isPullRequest } = getEventType();
+  if (isPullRequest) {
+    return postCommentToPullRequest(packageNameAndVersion);
+  }
+  return null;
 };

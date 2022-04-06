@@ -30,13 +30,13 @@ jobs:
         id: cache-modules
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-node${{ env.NODEJS_TOOL_VERSION }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-node${{ env.NODEJS_TOOL_VERSION }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node${{ env.NODEJS_TOOL_VERSION }}-
 
       - name: Install Node.js dependencies
         if: steps.cache-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
+        run: npm ci
 
       - name: Run eslint
         uses: wearerequired/lint-action@v1
@@ -66,13 +66,13 @@ jobs:
         id: cache-modules
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-node${{ env.NODEJS_TOOL_VERSION }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-node${{ env.NODEJS_TOOL_VERSION }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node${{ env.NODEJS_TOOL_VERSION }}-
 
       - name: Install Node.js dependencies
         if: steps.cache-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
+        run: npm ci
 
       - name: Run unit tests
         run: npm run test

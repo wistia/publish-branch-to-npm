@@ -31,7 +31,7 @@ export const getEventType = () => {
 };
 
 // iterate through comment list to find one that begins with the
-// hidden identifier we added in generatePullRequestComment()
+// hidden identifier we added in generateInstallationInstructionsMarkdown()
 export const getCommentId = (commentList, commentIdentifier) => {
   const comment = commentList.find(({ body }) => body.startsWith(commentIdentifier));
 
@@ -127,11 +127,14 @@ export const loadPackageJson = () => {
 // returns GitHub-flavored markdown with some instructions on how to install a branch package with npm & yarn
 // GitHub doesn't allow text colors in markdown so we use the diff code-colorization
 // to get a light grey for displaying date & time
-export const generatePullRequestComment = (packageNameAndVersion, commentIdentifier) => {
+export const generateInstallationInstructionsMarkdown = (
+  packageNameAndVersion,
+  commentIdentifier,
+) => {
   const currentDate = new Date();
 
   return `${commentIdentifier}
-  A new package containing your PR commits has been published; run one of the commands below to update this package in your application:
+  A new package containing your PR commits has been published! Run one of the commands below to update this package in your application:
 
   ### yarn:
 
@@ -155,6 +158,15 @@ export const generatePullRequestComment = (packageNameAndVersion, commentIdentif
   `;
 };
 
+// returns text-based instructions that are displayed inside an annotation on GitHub
+export const generateInstallationInstructionsAnnotation = (packageNameAndVersion) => `
+A new package containing your PR commits has been published! Run one of the commands below to update this package in your application:
+
+  * yarn upgrade ${packageNameAndVersion}
+
+  * npm install ${packageNameAndVersion}
+`;
+
 // posts a comment to the PR if none have been posted yet, but any new posts
 // (for example, when a new commit is pushed to the PR) will update original comment
 // so that there is only ever a single comment being made by this action
@@ -167,7 +179,10 @@ export const postCommentToPullRequest = async (packageNameAndVersion) => {
   const commentIdentifier = '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->';
   const { githubToken } = getInputs();
   const githubClient = getGithubClient(githubToken);
-  const commentBody = generatePullRequestComment(packageNameAndVersion, commentIdentifier);
+  const commentBody = generateInstallationInstructionsMarkdown(
+    packageNameAndVersion,
+    commentIdentifier,
+  );
   const { data: commentList } = await getCommentList(githubClient, context.issue);
   const commentId = getCommentId(commentList, commentIdentifier);
 
@@ -192,12 +207,21 @@ export const postCommentToPullRequest = async (packageNameAndVersion) => {
 
 export const displayInstallationInstructions = (name, uniqueVersion) => {
   const packageNameAndVersion = getPackageNameAndVersion(name, uniqueVersion);
+  const { isPullRequest, isWorkflowDispatch } = getEventType();
 
-  const { isPullRequest } = getEventType();
   if (isPullRequest) {
     return postCommentToPullRequest(packageNameAndVersion);
   }
-  return null;
+
+  if (isWorkflowDispatch) {
+    const commentBody = generateInstallationInstructionsAnnotation(packageNameAndVersion);
+
+    return core.notice(commentBody);
+  }
+
+  throw new Error(
+    `Package (${packageNameAndVersion}) may have been published but installation instructions could not be displayed, check https://www.npmjs.com/package/${name}?activeTab=versions`,
+  );
 };
 
 export const publishNpmPackage = (name, uniqueVersion) => {

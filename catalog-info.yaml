@@ -4,7 +4,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: Publish-Branch-To-NPM
-  description: GitHub action to publish a pre-release version of an npm package to the registry when a pull request is made
+  description: GitHub action to publish a pre-release version of an npm package to the registry
   annotations:
     github.com/project-slug: wistia/publish-branch-to-npm
     backstage.io/techdocs-ref: dir:.

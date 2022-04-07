@@ -73,3 +73,16 @@ As opposed to the `pull_request` event trigger which can derrive `commit_hash`, 
 When the action completes, you should see an annotation that looks like this:
 
 ![workflow dispatch annotation](assets/workflow_dispatch_annotation.png)
+
+## Development
+
+### Releasing new versions to GitHub Marketplace
+
+It's easiest to just use `npm` to manage the versioning:
+
+1. `npm version [major, minor, patch]`_\*_
+2. `git push origin head --tags`
+
+_note: this will update the version field in `package.json`, run a build & commit those changes_
+
+Read more about [publishing actions in GitHub Marketplace](https://docs.github.com/en/actions/creating-actions/publishing-actions-in-github-marketplace).

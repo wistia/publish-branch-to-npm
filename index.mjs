@@ -18,6 +18,8 @@ try {
   const uniqueVersion = getUniqueVersion(currentVersion, commitHash);
   const packageNameAndVersion = getPackageNameAndVersion(name, uniqueVersion);
 
+  core.startGroup(`Publish ${name} package to registry`);
+
   // set auth token to allow publishing in CI
   execSync(getNpmAuthCommand(npmToken));
 
@@ -26,6 +28,8 @@ try {
 
   // publish package
   execSync(getPublishPackageCommand(isDryRun));
+
+  core.endGroup();
 
   // display installation instructions
   await displayInstallationInstructions(packageNameAndVersion);

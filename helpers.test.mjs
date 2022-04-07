@@ -2,7 +2,7 @@ import test from 'ava'; // eslint-disable-line import/no-unresolved
 
 import {
   coerceToBoolean,
-  generatePullRequestComment,
+  generateInstallationInstructionsMarkdown,
   getCommentId,
   getGithubClient,
   getNpmAuthCommand,
@@ -84,10 +84,13 @@ test('getPublishPackageCommand()', (t) => {
   t.is(getPublishPackageCommand(true), 'npm publish --verbose --tag beta --dry-run');
 });
 
-test('generatePullRequestComment()', (t) => {
+test('generateInstallationInstructionsMarkdown()', (t) => {
   const fakePackageNameAndVersion = '@namespace/package-name@2.10.3-beta.12345678.0000000';
   const fakeIdentifier = '<!-- TEST COMMENT -->';
-  const comment = generatePullRequestComment(fakePackageNameAndVersion, fakeIdentifier);
+  const comment = generateInstallationInstructionsMarkdown(
+    fakePackageNameAndVersion,
+    fakeIdentifier,
+  );
 
   t.is(comment.startsWith(fakeIdentifier), true);
   t.regex(comment, /yarn upgrade @namespace\/package-name@2\.10\.3-beta\.12345678\.0000000/);

@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { env } from 'process';
+import { execSync } from 'child_process';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import core from '@actions/core';
@@ -63,12 +64,14 @@ export const getGithubClient = (githubToken) => {
 export const getTrimmedPackageVersion = (version) =>
   version.trim().split(/[.-]/).slice(0, 3).join('.');
 
-// current version + 8 chars of a UUID + 8 chars of the last commit hash
+// current version + 8 chars of a UUID + 7 chars of the commit hash
 // must be valid semver https://semver.org/
-export const getUniqueVersion = (currentVersion, commitHash) => {
+export const getUniqueVersion = (currentVersion) => {
+  const versionPrefix = 'beta'; // alpha, rc
   const randomish = crypto.randomUUID().substring(0, 8);
+  const { commitHash } = getInputs();
   const hash = commitHash.substring(0, 7);
-  return `${currentVersion}-beta.${randomish}.${hash}`;
+  return `${currentVersion}-${versionPrefix}.${randomish}.${hash}`;
 };
 
 // set auth token to allow publishing in CI
@@ -187,10 +190,29 @@ export const postCommentToPullRequest = async (packageNameAndVersion) => {
   });
 };
 
-export const displayInstallationInstructions = (packageNameAndVersion) => {
+export const displayInstallationInstructions = (name, uniqueVersion) => {
+  const packageNameAndVersion = getPackageNameAndVersion(name, uniqueVersion);
+
   const { isPullRequest } = getEventType();
   if (isPullRequest) {
     return postCommentToPullRequest(packageNameAndVersion);
   }
   return null;
+};
+
+export const publishNpmPackage = (name, uniqueVersion) => {
+  const { npmToken, isDryRun } = getInputs();
+
+  core.startGroup(`Publish ${name} package to registry`);
+
+  // set auth token to allow publishing in CI
+  execSync(getNpmAuthCommand(npmToken));
+
+  // update version in package.json (does not get committed)
+  execSync(getUpdatePackageVersionCommand(uniqueVersion));
+
+  // publish package
+  execSync(getPublishPackageCommand(isDryRun));
+
+  core.endGroup();
 };

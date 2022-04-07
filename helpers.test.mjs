@@ -36,7 +36,7 @@ test('coerceToBoolean()', (t) => {
   t.is(coerceToBoolean(NaN), false);
 });
 
-test('getUniqueVersion()', (t) => {
+test.skip('getUniqueVersion()', (t) => {
   const fakeCurrentVersion = '1.1.1';
   const fakecommitHash = 'df20d95efe1569bb854f994217f8712cd3a29aa6';
 

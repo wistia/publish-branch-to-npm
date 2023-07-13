@@ -1,5 +1,4 @@
 import core from '@actions/core';
-
 import {
   getUniqueVersion,
   loadPackageJson,

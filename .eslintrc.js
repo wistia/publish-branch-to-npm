@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ['@wistia/eslint-config/base'],
+  extends: ['@wistia/eslint-config'],
   env: {
     node: true,
   },
@@ -10,5 +10,15 @@ module.exports = {
   },
   rules: {
     'import/extensions': ['error', 'always'],
+    'import/no-unused-modules': 'off',
   },
+  overrides: [
+    // test files
+    {
+      files: ['*.test.mjs'],
+      rules: {
+        'id-length': ['error', { exceptions: ['t'] }],
+      },
+    },
+  ],
 };

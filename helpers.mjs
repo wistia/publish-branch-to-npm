@@ -61,8 +61,7 @@ export const getGithubClient = (githubToken) => {
 };
 
 // returns just the beginning X.X.X part of the version
-export const getTrimmedPackageVersion = (version) =>
-  version.trim().split(/[.-]/).slice(0, 3).join('.');
+export const getTrimmedPackageVersion = (version) => version.trim().split(/[.-]/).slice(0, 3).join('.');
 
 // current version + 8 chars of a UUID + 7 chars of the commit hash
 // must be valid semver https://semver.org/
@@ -75,24 +74,23 @@ export const getUniqueVersion = (currentVersion) => {
 };
 
 // set auth token to allow publishing in CI
-export const getNpmAuthCommand = (npmToken) =>
-  `npm config set //registry.npmjs.org/:_authToken ${npmToken}`;
+export const getNpmAuthCommand = (npmToken) => `npm config set //registry.npmjs.org/:_authToken ${npmToken}`;
 
 // updates version in package.json
-export const getUpdatePackageVersionCommand = (uniqueVersion) =>
-  `npm version --git-tag-version false ${uniqueVersion}`;
+export const getUpdatePackageVersionCommand = (uniqueVersion) => `npm version --git-tag-version false ${uniqueVersion}`;
 
-// Converts a boolean string value `value` into a boolean. If passed something other than 'true' or 'false' will coerce value to boolean.
-export function coerceToBoolean(value) {
+// Converts a boolean string value `value` into a boolean.
+// If passed something other than 'true' or 'false' will coerce value to boolean.
+export const coerceToBoolean = (value) => {
   if (value === 'true' || value === 'false') {
     return value === 'true';
   }
   return Boolean(value);
-}
+};
 
 // publish with "beta" tag since if we do not specify a tag, "latest" will be used by default
 export const getPublishPackageCommand = (isDryRun) => {
-  let publishCommand = `npm publish --verbose --tag beta`;
+  let publishCommand = 'npm publish --verbose --tag beta';
 
   if (coerceToBoolean(isDryRun)) {
     publishCommand = `${publishCommand} --dry-run`;
@@ -124,7 +122,7 @@ export const loadPackageJson = () => {
   return { name, currentVersion };
 };
 
-// returns GitHub-flavored markdown with some instructions on how to install a branch package with npm & yarn
+// returns GitHub-flavored markdown with some instructions on how to install a branch package
 // GitHub doesn't allow text colors in markdown so we use the diff code-colorization
 // to get a light grey for displaying date & time
 export const generateInstallationInstructionsMarkdown = (

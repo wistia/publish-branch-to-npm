@@ -1,5 +1,4 @@
 import test from 'ava'; // eslint-disable-line import/no-unresolved
-
 import {
   coerceToBoolean,
   generateInstallationInstructionsMarkdown,

@@ -14,7 +14,7 @@
     "@actions/github": "^6.0.0"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.33.3",
+    "@vercel/ncc": "^0.38.0",
     "@wistia/eslint-config": "^0.23.2",
     "ava": "^5.3.1"
   },

@@ -80,9 +80,8 @@ When the action completes, you should see an annotation that looks like this:
 
 It's easiest to just use `npm` to manage the versioning:
 
-1. `npm version [major, minor, patch]`_\*_
+1. `npm version [major, minor, patch]`_\*_ (_note: this will update the version field in `package.json`, create a tag with the new version number, run a build & commit those changes_)
 2. `git push origin head --tags`
-
-_note: this will update the version field in `package.json`, run a build & commit those changes_
+3. visit the [release](https://github.com/wistia/publish-branch-to-npm/releases) page, click `Draft new release` and fill out form
 
 Read more about [publishing actions in GitHub Marketplace](https://docs.github.com/en/actions/creating-actions/publishing-actions-in-github-marketplace).

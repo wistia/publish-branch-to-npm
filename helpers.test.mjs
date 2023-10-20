@@ -92,7 +92,7 @@ test('generateInstallationInstructionsMarkdown()', (t) => {
   );
 
   t.is(comment.startsWith(fakeIdentifier), true);
-  t.regex(comment, /yarn upgrade @namespace\/package-name@2\.10\.3-beta\.12345678\.0000000/);
+  t.regex(comment, /yarn add @namespace\/package-name@2\.10\.3-beta\.12345678\.0000000/);
   t.regex(comment, /npm install @namespace\/package-name@2\.10\.3-beta\.12345678\.0000000/);
 });
 

@@ -137,7 +137,7 @@ export const generateInstallationInstructionsMarkdown = (
   ### yarn:
 
   \`\`\`shell
-  yarn upgrade ${packageNameAndVersion}
+  yarn add ${packageNameAndVersion}
   \`\`\`
 
   ### npm:
@@ -160,7 +160,7 @@ export const generateInstallationInstructionsMarkdown = (
 export const generateInstallationInstructionsAnnotation = (packageNameAndVersion) => `
 A new package containing your PR commits has been published! Run one of the commands below to update this package in your application:
 
-  * yarn upgrade ${packageNameAndVersion}
+  * yarn add ${packageNameAndVersion}
 
   * npm install ${packageNameAndVersion}
 `;

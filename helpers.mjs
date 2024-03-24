@@ -65,10 +65,10 @@ export const getTrimmedPackageVersion = (version) => version.trim().split(/[.-]/
 
 // current version + 8 chars of a UUID + 7 chars of the commit hash
 // must be valid semver https://semver.org/
-export const getUniqueVersion = (currentVersion) => {
+export const getUniqueVersion = (currentVersion, optionalCommitHash) => {
   const versionPrefix = 'beta'; // alpha, rc
   const randomish = crypto.randomUUID().substring(0, 8);
-  const { commitHash } = getInputs();
+  const commitHash = optionalCommitHash || getInputs().commitHash;
   const hash = commitHash.substring(0, 7);
   return `${currentVersion}-${versionPrefix}.${randomish}.${hash}`;
 };

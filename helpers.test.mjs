@@ -1,4 +1,4 @@
-import test from 'ava'; // eslint-disable-line import/no-unresolved
+import { assert, expect, test } from 'vitest'; // eslint-disable-line import/no-extraneous-dependencies
 import {
   coerceToBoolean,
   generateInstallationInstructionsMarkdown,
@@ -13,77 +13,59 @@ import {
   loadPackageJson,
 } from './helpers.mjs';
 
-test('getGithubClient()', (t) => {
-  const error = t.throws(
-    () => {
-      getGithubClient();
-    },
-    { instanceOf: Error },
-  );
-
-  t.is(error.message, 'Parameter token or opts.auth is required');
+test('coerceToBoolean()', () => {
+  assert.strictEqual(coerceToBoolean('true'), true);
+  assert.strictEqual(coerceToBoolean('false'), false);
+  assert.strictEqual(coerceToBoolean(true), true);
+  assert.strictEqual(coerceToBoolean(false), false);
+  assert.strictEqual(coerceToBoolean(null), false);
+  assert.strictEqual(coerceToBoolean(undefined), false);
+  assert.strictEqual(coerceToBoolean('string'), true);
+  assert.strictEqual(coerceToBoolean(NaN), false);
 });
 
-test('coerceToBoolean()', (t) => {
-  t.is(coerceToBoolean('true'), true);
-  t.is(coerceToBoolean('false'), false);
-  t.is(coerceToBoolean(true), true);
-  t.is(coerceToBoolean(false), false);
-  t.is(coerceToBoolean(null), false);
-  t.is(coerceToBoolean(undefined), false);
-  t.is(coerceToBoolean('string'), true);
-  t.is(coerceToBoolean(NaN), false);
-});
-
-test.skip('getUniqueVersion()', (t) => {
-  const fakeCurrentVersion = '1.1.1';
-  const fakecommitHash = 'df20d95efe1569bb854f994217f8712cd3a29aa6';
-
-  t.regex(getUniqueVersion(fakeCurrentVersion, fakecommitHash), /1\.1\.1-beta\..*\.df20d95/);
-});
-
-test('getTrimmedPackageVersion()', (t) => {
+test('getTrimmedPackageVersion()', () => {
   const fakePackageVersion1 = '1.1.1';
   const fakePackageVersion2 = '1.401.9-prerelease+build';
   const fakePackageVersion3 = '2.10.3-beta.12345678.0000000';
 
-  t.is(getTrimmedPackageVersion(fakePackageVersion1), '1.1.1');
-  t.is(getTrimmedPackageVersion(fakePackageVersion2), '1.401.9');
-  t.is(getTrimmedPackageVersion(fakePackageVersion3), '2.10.3');
+  assert.strictEqual(getTrimmedPackageVersion(fakePackageVersion1), '1.1.1');
+  assert.strictEqual(getTrimmedPackageVersion(fakePackageVersion2), '1.401.9');
+  assert.strictEqual(getTrimmedPackageVersion(fakePackageVersion3), '2.10.3');
 });
 
-test('getNpmAuthCommand()', (t) => {
-  t.is(
+test('getNpmAuthCommand()', () => {
+  assert.strictEqual(
     getNpmAuthCommand('fakeNpmToken'),
     'npm config set //registry.npmjs.org/:_authToken fakeNpmToken',
   );
 });
 
-test('getUpdatePackageVersionCommand()', (t) => {
+test('getUpdatePackageVersionCommand()', () => {
   const fakePackageVersion = '2.10.3-beta.12345678.0000000';
 
-  t.is(
+  assert.strictEqual(
     getUpdatePackageVersionCommand(fakePackageVersion),
     'npm version --git-tag-version false 2.10.3-beta.12345678.0000000',
   );
 });
 
-test('getPackageNameAndVersion()', (t) => {
+test('getPackageNameAndVersion()', () => {
   const fakeName = '@namespace/package-name';
   const fakePackageVersion = '2.10.3-beta.12345678.0000000';
 
-  t.is(
+  assert.strictEqual(
     getPackageNameAndVersion(fakeName, fakePackageVersion),
     '@namespace/package-name@2.10.3-beta.12345678.0000000',
   );
 });
 
-test('getPublishPackageCommand()', (t) => {
-  t.is(getPublishPackageCommand(), 'npm publish --verbose --tag beta');
-  t.is(getPublishPackageCommand(true), 'npm publish --verbose --tag beta --dry-run');
+test('getPublishPackageCommand()', () => {
+  assert.strictEqual(getPublishPackageCommand(), 'npm publish --verbose --tag beta');
+  assert.strictEqual(getPublishPackageCommand(true), 'npm publish --verbose --tag beta --dry-run');
 });
 
-test('generateInstallationInstructionsMarkdown()', (t) => {
+test('generateInstallationInstructionsMarkdown()', () => {
   const fakePackageNameAndVersion = '@namespace/package-name@2.10.3-beta.12345678.0000000';
   const fakeIdentifier = '<!-- TEST COMMENT -->';
   const comment = generateInstallationInstructionsMarkdown(
@@ -91,12 +73,12 @@ test('generateInstallationInstructionsMarkdown()', (t) => {
     fakeIdentifier,
   );
 
-  t.is(comment.startsWith(fakeIdentifier), true);
-  t.regex(comment, /yarn add @namespace\/package-name@2\.10\.3-beta\.12345678\.0000000/);
-  t.regex(comment, /npm install @namespace\/package-name@2\.10\.3-beta\.12345678\.0000000/);
+  assert.strictEqual(comment.startsWith(fakeIdentifier), true);
+  expect(comment).toMatch(/yarn add @namespace\/package-name@2\.10\.3-beta\.12345678\.0000000/);
+  expect(comment).toMatch(/npm install @namespace\/package-name@2\.10\.3-beta\.12345678\.0000000/);
 });
 
-test('getCommentId()', (t) => {
+test('getCommentId()', () => {
   const fakeIdentifier = '<!-- TEST COMMENT -->';
   const fakeCommentListWithoutPreviousComment = [
     {
@@ -123,18 +105,33 @@ test('getCommentId()', (t) => {
     },
   ];
 
-  t.is(getCommentId(fakeCommentListWithoutPreviousComment, fakeIdentifier), null);
-  t.is(getCommentId(fakeCommentListWithPreviousComment, fakeIdentifier), 2);
+  assert.strictEqual(getCommentId(fakeCommentListWithoutPreviousComment, fakeIdentifier), null);
+  assert.strictEqual(getCommentId(fakeCommentListWithPreviousComment, fakeIdentifier), 2);
 });
 
 // this passes locally but fails in CI for some reason
-test.skip('loadPackageJson()', (t) => {
-  const error = t.throws(
-    () => {
-      loadPackageJson();
-    },
-    { instanceOf: Error },
-  );
+test('loadPackageJson()', () => {
+  try {
+    loadPackageJson();
+  } catch (error) {
+    assert(error instanceof Error);
+    assert.strictEqual(error.message, 'GITHUB_WORKSPACE env var missing');
+  }
+});
 
-  t.is(error.message, 'GITHUB_WORKSPACE env var missing');
+test('getGithubClient()', () => {
+  try {
+    getGithubClient();
+  } catch (error) {
+    assert(error instanceof Error);
+    assert.strictEqual(error.message, 'Parameter token or opts.auth is required');
+  }
+});
+
+// run into `Input required and not supplied: github_token` error
+test('getUniqueVersion()', () => {
+  const fakeCurrentVersion = '1.1.1';
+  const fakecommitHash = 'df20d95efe1569bb854f994217f8712cd3a29aa6';
+
+  expect(getUniqueVersion(fakeCurrentVersion, fakecommitHash)).toMatch(/1\.1\.1-beta\..*\.df20d95/);
 });

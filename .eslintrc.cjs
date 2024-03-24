@@ -3,6 +3,7 @@ module.exports = {
   env: {
     node: true,
   },
+  reportUnusedDisableDirectives: true,
   parserOptions: {
     ecmaVersion: 2022,
     requireConfigFile: false,

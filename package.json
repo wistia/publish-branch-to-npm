@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.1",
-    "@wistia/eslint-config": "^0.32.3",
+    "@wistia/eslint-config": "^0.33.0",
     "vitest": "^1.6.0"
   },
   "author": "Wistia Engineering",

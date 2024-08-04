@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v4.1.7
 
       - name: Parse .tool-versions
         uses: wistia/parse-tool-versions@v1.0

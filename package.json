@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "description": "GitHub action created to publish a branch of an npm package repo to npm registry",
   "main": "dist/index.mjs",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "ncc build index.mjs -o dist --source-map --license licenses.txt",
     "lint": "eslint --fix --cache --ext mjs .",

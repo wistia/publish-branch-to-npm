@@ -1,8 +1,7 @@
-import crypto from 'crypto';
-import { env } from 'process';
-import { execSync } from 'child_process';
-import { join } from 'path';
-import { readFileSync } from 'fs';
+import crypto from 'node:crypto';
+import { execSync } from 'node:child_process';
+import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import core from '@actions/core';
 import { getOctokit, context } from '@actions/github';
 
@@ -18,7 +17,7 @@ export const getInputs = () => ({
 // returns an object with the eventName and boolean properties
 // indicating if it's a pull request of manual workflow dispatch
 export const getEventType = () => {
-  const eventName = env.GITHUB_EVENT_NAME;
+  const eventName = process.env.GITHUB_EVENT_NAME;
 
   if (!eventName) {
     throw new Error('GITHUB_EVENT_NAME env var missing');
@@ -61,7 +60,8 @@ export const getGithubClient = (githubToken) => {
 };
 
 // returns just the beginning X.X.X part of the version
-export const getTrimmedPackageVersion = (version) => version.trim().split(/[.-]/).slice(0, 3).join('.');
+export const getTrimmedPackageVersion = (version) =>
+  version.trim().split(/[.-]/).slice(0, 3).join('.');
 
 // current version + 8 chars of a UUID + 7 chars of the commit hash
 // must be valid semver https://semver.org/
@@ -74,10 +74,12 @@ export const getUniqueVersion = (currentVersion, optionalCommitHash) => {
 };
 
 // set auth token to allow publishing in CI
-export const getNpmAuthCommand = (npmToken) => `npm config set //registry.npmjs.org/:_authToken ${npmToken}`;
+export const getNpmAuthCommand = (npmToken) =>
+  `npm config set //registry.npmjs.org/:_authToken ${npmToken}`;
 
 // updates version in package.json
-export const getUpdatePackageVersionCommand = (uniqueVersion) => `npm version --git-tag-version false ${uniqueVersion}`;
+export const getUpdatePackageVersionCommand = (uniqueVersion) =>
+  `npm version --git-tag-version false ${uniqueVersion}`;
 
 // Converts a boolean string value `value` into a boolean.
 // If passed something other than 'true' or 'false' will coerce value to boolean.
@@ -104,7 +106,7 @@ export const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniq
 
 // loads package.json from repo and returns the package name & version
 export const loadPackageJson = () => {
-  const githubWorkspace = env.GITHUB_WORKSPACE;
+  const githubWorkspace = process.env.GITHUB_WORKSPACE;
 
   if (!githubWorkspace) {
     throw new Error('GITHUB_WORKSPACE env var missing');

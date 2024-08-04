@@ -26,7 +26,7 @@ jobs:
           node-version: ${{ env.NODEJS_TOOL_VERSION }}
 
       - name: Cache node_modules
-        uses: actions/cache@v2.1.2
+        uses: actions/cache@v4
         id: cache-modules
         with:
           path: '**/node_modules'

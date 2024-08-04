@@ -135,7 +135,7 @@ export const generateInstallationInstructionsMarkdown = (
   const currentDate = new Date();
 
   return `${commentIdentifier}
-  ${packageName}
+  ### ${packageName}
 
   A new package containing your PR commits has been published! Run one of the commands below to update this package in your application:
 

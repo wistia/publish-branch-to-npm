@@ -31002,8 +31002,10 @@ const getUniqueVersion = (currentVersion, optionalCommitHash) => {
 };
 
 // set auth token to allow publishing in CI
+// flags are necessary to avoid errors in workspace repos
+// see: https://github.com/npm/cli/issues/6099
 const getNpmAuthCommand = (npmToken) =>
-  `npm config set //registry.npmjs.org/:_authToken ${npmToken}`;
+  `npm config set --workspaces=false --include-workspace-root //registry.npmjs.org/:_authToken ${npmToken}`;
 
 // updates version in package.json
 const getUpdatePackageVersionCommand = (uniqueVersion) =>
@@ -31159,7 +31161,7 @@ const displayInstallationInstructions = (name, uniqueVersion) => {
 const publishNpmPackage = (name, uniqueVersion) => {
   const { npmToken, isDryRun } = getInputs();
 
-  (0,core.startGroup)(`Publish ${name} package to registry`);
+  (0,core.startGroup)(`\nPublish ${name} package to registry in ${process.cwd()}`);
 
   // set auth token to allow publishing in CI
   (0,external_node_child_process_namespaceObject.execSync)(getNpmAuthCommand(npmToken));
@@ -31188,10 +31190,6 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 try {
   // run all subsequent commands in the working directory
   process.chdir((0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_1__/* .getWorkingDirectory */ .Zv)());
-
-  console.log('githhub workspace', process.env.GITHUB_WORKSPACE); // eslint-disable-line no-console
-  console.log('current working directory:', (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_1__/* .getWorkingDirectory */ .Zv)()); // eslint-disable-line no-console
-  console.log('\npublishing to npm in directory:', process.cwd()); // eslint-disable-line no-console
 
   const { name, currentVersion } = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_1__/* .loadPackageJson */ .a$)();
   const uniqueVersion = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_1__/* .getUniqueVersion */ .an)(currentVersion);

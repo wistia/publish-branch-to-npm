@@ -2,17 +2,30 @@ import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import core from '@actions/core';
+import { endGroup, getInput, notice, startGroup } from '@actions/core';
 import { getOctokit, context } from '@actions/github';
 
 // retrieves inputs that are defined in action.yml
 // errors are automatically thrown if required inputs are not present
 export const getInputs = () => ({
-  githubToken: core.getInput('github_token', { required: true }),
-  npmToken: core.getInput('npm_token', { required: true }),
-  commitHash: core.getInput('commit_hash', { required: true }),
-  isDryRun: core.getInput('dry_run', { required: false }) === 'true',
+  githubToken: getInput('github_token', { required: true }),
+  npmToken: getInput('npm_token', { required: true }),
+  commitHash: getInput('commit_hash', { required: true }),
+  isDryRun: getInput('dry_run', { required: false }) === 'true',
+  workingDirectory: getInput('working_directory', { required: false }) || '.',
 });
+
+export const getWorkingDirectory = () => {
+  const githubWorkspace = process.env.GITHUB_WORKSPACE;
+
+  if (!githubWorkspace) {
+    throw new Error('GITHUB_WORKSPACE env var missing');
+  }
+
+  const { workingDirectory } = getInputs();
+
+  return join(githubWorkspace, workingDirectory);
+};
 
 // returns an object with the eventName and boolean properties
 // indicating if it's a pull request of manual workflow dispatch
@@ -106,13 +119,7 @@ export const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniq
 
 // loads package.json from repo and returns the package name & version
 export const loadPackageJson = () => {
-  const githubWorkspace = process.env.GITHUB_WORKSPACE;
-
-  if (!githubWorkspace) {
-    throw new Error('GITHUB_WORKSPACE env var missing');
-  }
-
-  const packageJsonFilepath = join(githubWorkspace, 'package.json');
+  const packageJsonFilepath = join(getWorkingDirectory(), 'package.json');
   const packageJson = JSON.parse(readFileSync(packageJsonFilepath, 'utf8'));
 
   if (!packageJson) {
@@ -226,7 +233,7 @@ export const displayInstallationInstructions = (name, uniqueVersion) => {
       packageNameAndVersion,
     );
 
-    return core.notice(commentBody);
+    return notice(commentBody);
   }
 
   throw new Error(
@@ -237,7 +244,7 @@ export const displayInstallationInstructions = (name, uniqueVersion) => {
 export const publishNpmPackage = (name, uniqueVersion) => {
   const { npmToken, isDryRun } = getInputs();
 
-  core.startGroup(`Publish ${name} package to registry`);
+  startGroup(`Publish ${name} package to registry`);
 
   // set auth token to allow publishing in CI
   execSync(getNpmAuthCommand(npmToken));
@@ -248,5 +255,5 @@ export const publishNpmPackage = (name, uniqueVersion) => {
   // publish package
   execSync(getPublishPackageCommand(isDryRun));
 
-  core.endGroup();
+  endGroup();
 };

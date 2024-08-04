@@ -17,6 +17,10 @@ inputs:
     description: 'If true, will run action normally except it will not publish anything to npm'
     required: false
     default: 'false'
+  working_directory:
+    description: 'The directory to run the publish command in (useful for monorepos)'
+    required: false
+    default: '.'
 
 runs:
   using: 'node20'

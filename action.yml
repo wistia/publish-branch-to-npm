@@ -16,7 +16,7 @@ inputs:
   dry_run:
     description: 'If true, will run action normally except it will not publish anything to npm'
     required: false
-    default: false
+    default: 'false'
 
 runs:
   using: 'node16'

@@ -21,7 +21,7 @@ jobs:
         uses: wistia/parse-tool-versions@v1.0
 
       - name: Set up Node.js environment
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODEJS_TOOL_VERSION }}
 

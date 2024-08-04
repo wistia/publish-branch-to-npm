@@ -1,0 +1,11 @@
+# https://github.blog/changelog/2024-04-29-dependabot-multi-directory-configuration-public-beta-now-available/
+version: 2
+updates:
+  - package-ecosystem: 'github-actions'
+    directories:
+      - '/.github/actions/**/*'
+      - '/.github/workflows/**/*'
+    schedule:
+      interval: 'weekly'
+    commit-message:
+      prefix: 'ci(github)'

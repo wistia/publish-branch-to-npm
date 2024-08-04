@@ -66,9 +66,11 @@ test('getPublishPackageCommand()', () => {
 });
 
 test('generateInstallationInstructionsMarkdown()', () => {
+  const fakePackageName = '@namespace/package-name';
   const fakePackageNameAndVersion = '@namespace/package-name@2.10.3-beta.12345678.0000000';
   const fakeIdentifier = '<!-- TEST COMMENT -->';
   const comment = generateInstallationInstructionsMarkdown(
+    fakePackageName,
     fakePackageNameAndVersion,
     fakeIdentifier,
   );

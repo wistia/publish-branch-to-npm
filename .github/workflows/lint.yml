@@ -38,9 +38,5 @@ jobs:
         if: steps.cache-modules.outputs.cache-hit != 'true'
         run: npm ci
 
-      - name: Run eslint
-        uses: wearerequired/lint-action@v2
-        with:
-          github_token: ${{ secrets.github_token }}
-          eslint: true
-          eslint_extensions: mjs
+      - name: Run ESLint
+        run: yarn lint

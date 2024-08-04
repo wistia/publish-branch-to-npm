@@ -31089,7 +31089,7 @@ A new package containing your PR commits has been published! Run one of the comm
 // posts a comment to the PR if none have been posted yet, but any new posts
 // (for example, when a new commit is pushed to the PR) will update original comment
 // so that there is only ever a single comment being made by this action
-const postCommentToPullRequest = async (packageNameAndVersion) => {
+const postCommentToPullRequest = async (packageName, packageNameAndVersion) => {
   if (!github.context.issue.number) {
     throw new Error('This is not a PR or commenting is disabled');
   }
@@ -31099,6 +31099,7 @@ const postCommentToPullRequest = async (packageNameAndVersion) => {
   const { githubToken } = getInputs();
   const githubClient = getGithubClient(githubToken);
   const commentBody = generateInstallationInstructionsMarkdown(
+    packageName,
     packageNameAndVersion,
     commentIdentifier,
   );

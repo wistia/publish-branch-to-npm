@@ -30893,6 +30893,7 @@ module.exports = parseParams
 __nccwpck_require__.d(__webpack_exports__, {
   "KY": () => (/* binding */ displayInstallationInstructions),
   "an": () => (/* binding */ getUniqueVersion),
+  "Zv": () => (/* binding */ getWorkingDirectory),
   "a$": () => (/* binding */ loadPackageJson),
   "DS": () => (/* binding */ publishNpmPackage)
 });
@@ -30922,11 +30923,24 @@ var github = __nccwpck_require__(5438);
 // retrieves inputs that are defined in action.yml
 // errors are automatically thrown if required inputs are not present
 const getInputs = () => ({
-  githubToken: core.getInput('github_token', { required: true }),
-  npmToken: core.getInput('npm_token', { required: true }),
-  commitHash: core.getInput('commit_hash', { required: true }),
-  isDryRun: core.getInput('dry_run', { required: false }) === 'true',
+  githubToken: (0,core.getInput)('github_token', { required: true }),
+  npmToken: (0,core.getInput)('npm_token', { required: true }),
+  commitHash: (0,core.getInput)('commit_hash', { required: true }),
+  isDryRun: (0,core.getInput)('dry_run', { required: false }) === 'true',
+  workingDirectory: (0,core.getInput)('working_directory', { required: false }) || '.',
 });
+
+const getWorkingDirectory = () => {
+  const githubWorkspace = process.env.GITHUB_WORKSPACE;
+
+  if (!githubWorkspace) {
+    throw new Error('GITHUB_WORKSPACE env var missing');
+  }
+
+  const { workingDirectory } = getInputs();
+
+  return (0,external_node_path_namespaceObject.join)(githubWorkspace, workingDirectory);
+};
 
 // returns an object with the eventName and boolean properties
 // indicating if it's a pull request of manual workflow dispatch
@@ -31020,13 +31034,7 @@ const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniqueVersi
 
 // loads package.json from repo and returns the package name & version
 const loadPackageJson = () => {
-  const githubWorkspace = process.env.GITHUB_WORKSPACE;
-
-  if (!githubWorkspace) {
-    throw new Error('GITHUB_WORKSPACE env var missing');
-  }
-
-  const packageJsonFilepath = (0,external_node_path_namespaceObject.join)(githubWorkspace, 'package.json');
+  const packageJsonFilepath = (0,external_node_path_namespaceObject.join)(getWorkingDirectory(), 'package.json');
   const packageJson = JSON.parse((0,external_node_fs_namespaceObject.readFileSync)(packageJsonFilepath, 'utf8'));
 
   if (!packageJson) {
@@ -31140,7 +31148,7 @@ const displayInstallationInstructions = (name, uniqueVersion) => {
       packageNameAndVersion,
     );
 
-    return core.notice(commentBody);
+    return (0,core.notice)(commentBody);
   }
 
   throw new Error(
@@ -31151,7 +31159,7 @@ const displayInstallationInstructions = (name, uniqueVersion) => {
 const publishNpmPackage = (name, uniqueVersion) => {
   const { npmToken, isDryRun } = getInputs();
 
-  core.startGroup(`Publish ${name} package to registry`);
+  (0,core.startGroup)(`Publish ${name} package to registry`);
 
   // set auth token to allow publishing in CI
   (0,external_node_child_process_namespaceObject.execSync)(getNpmAuthCommand(npmToken));
@@ -31162,7 +31170,7 @@ const publishNpmPackage = (name, uniqueVersion) => {
   // publish package
   (0,external_node_child_process_namespaceObject.execSync)(getPublishPackageCommand(isDryRun));
 
-  core.endGroup();
+  (0,core.endGroup)();
 };
 
 
@@ -31178,6 +31186,13 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 
 try {
+  // run all subsequent commands in the working directory
+  process.chdir((0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_1__/* .getWorkingDirectory */ .Zv)());
+
+  console.log('githhub workspace', process.env.GITHUB_WORKSPACE); // eslint-disable-line no-console
+  console.log('current working directory:', (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_1__/* .getWorkingDirectory */ .Zv)()); // eslint-disable-line no-console
+  console.log('\npublishing to npm in directory:', process.cwd()); // eslint-disable-line no-console
+
   const { name, currentVersion } = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_1__/* .loadPackageJson */ .a$)();
   const uniqueVersion = (0,_helpers_mjs__WEBPACK_IMPORTED_MODULE_1__/* .getUniqueVersion */ .an)(currentVersion);
 

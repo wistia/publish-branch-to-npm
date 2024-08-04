@@ -14,7 +14,7 @@ An npm access token. See [https://docs.npmjs.com/creating-and-viewing-access-tok
 
 ### dry_run
 
-As of `npm@6`, does everything publish would do except actually publishing to the registry. Reports the details of what would have been published, see [npm publish docs](https://docs.npmjs.com/cli/v7/commands/npm-publish). `dry_run` is optional and defaults to `false`.
+Does everything publish would do except actually publishing to the registry. Reports the details of what would have been published, see [npm publish docs](https://docs.npmjs.com/cli/v7/commands/npm-publish). `dry_run` is optional and defaults to `false`.
 
 ### commit_hash
 

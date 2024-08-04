@@ -1,5 +1,7 @@
 module.exports = {
-  extends: ['@wistia/eslint-config'],
+  extends: ['@wistia/eslint-config',
+        '@wistia/eslint-config/node',
+        '@wistia/eslint-config/prettier',],
   env: {
     node: true,
   },

@@ -1,6 +1,6 @@
 {
   "name": "publish-branch-to-npm",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "GitHub action created to publish a branch of an npm package repo to npm registry",
   "main": "dist/index.mjs",
   "files": [

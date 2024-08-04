@@ -128,21 +128,24 @@ export const loadPackageJson = () => {
 // GitHub doesn't allow text colors in markdown so we use the diff code-colorization
 // to get a light grey for displaying date & time
 export const generateInstallationInstructionsMarkdown = (
+  packageName,
   packageNameAndVersion,
   commentIdentifier,
 ) => {
   const currentDate = new Date();
 
   return `${commentIdentifier}
+  ${packageName}
+
   A new package containing your PR commits has been published! Run one of the commands below to update this package in your application:
 
-  ### yarn:
+  #### yarn:
 
   \`\`\`shell
   yarn add ${packageNameAndVersion}
   \`\`\`
 
-  ### npm:
+  #### npm:
 
   \`\`\`shell
   npm install ${packageNameAndVersion}
@@ -159,7 +162,9 @@ export const generateInstallationInstructionsMarkdown = (
 };
 
 // returns text-based instructions that are displayed inside an annotation on GitHub
-export const generateInstallationInstructionsAnnotation = (packageNameAndVersion) => `
+export const generateInstallationInstructionsAnnotation = (packageName, packageNameAndVersion) => `
+${packageName}
+
 A new package containing your PR commits has been published! Run one of the commands below to update this package in your application:
 
   * yarn add ${packageNameAndVersion}
@@ -206,15 +211,19 @@ export const postCommentToPullRequest = async (packageNameAndVersion) => {
 };
 
 export const displayInstallationInstructions = (name, uniqueVersion) => {
-  const packageNameAndVersion = getPackageNameAndVersion(name, uniqueVersion);
+  const packageName = name;
+  const packageNameAndVersion = getPackageNameAndVersion(packageName, uniqueVersion);
   const { isPullRequest, isWorkflowDispatch } = getEventType();
 
   if (isPullRequest) {
-    return postCommentToPullRequest(packageNameAndVersion);
+    return postCommentToPullRequest(packageName, packageNameAndVersion);
   }
 
   if (isWorkflowDispatch) {
-    const commentBody = generateInstallationInstructionsAnnotation(packageNameAndVersion);
+    const commentBody = generateInstallationInstructionsAnnotation(
+      packageName,
+      packageNameAndVersion,
+    );
 
     return core.notice(commentBody);
   }

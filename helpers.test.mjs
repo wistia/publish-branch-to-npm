@@ -38,7 +38,7 @@ test('getTrimmedPackageVersion()', () => {
 test('getNpmAuthCommand()', () => {
   assert.strictEqual(
     getNpmAuthCommand('fakeNpmToken'),
-    'npm config set //registry.npmjs.org/:_authToken fakeNpmToken',
+    'npm config set --workspaces=false --include-workspace-root //registry.npmjs.org/:_authToken fakeNpmToken',
   );
 });
 

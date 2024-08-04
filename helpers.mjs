@@ -87,8 +87,10 @@ export const getUniqueVersion = (currentVersion, optionalCommitHash) => {
 };
 
 // set auth token to allow publishing in CI
+// flags are necessary to avoid errors in workspace repos
+// see: https://github.com/npm/cli/issues/6099
 export const getNpmAuthCommand = (npmToken) =>
-  `npm config set //registry.npmjs.org/:_authToken ${npmToken}`;
+  `npm config set --workspaces=false --include-workspace-root //registry.npmjs.org/:_authToken ${npmToken}`;
 
 // updates version in package.json
 export const getUpdatePackageVersionCommand = (uniqueVersion) =>
@@ -244,7 +246,7 @@ export const displayInstallationInstructions = (name, uniqueVersion) => {
 export const publishNpmPackage = (name, uniqueVersion) => {
   const { npmToken, isDryRun } = getInputs();
 
-  startGroup(`Publish ${name} package to registry`);
+  startGroup(`\nPublish ${name} package to registry in ${process.cwd()}`);
 
   // set auth token to allow publishing in CI
   execSync(getNpmAuthCommand(npmToken));

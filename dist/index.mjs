@@ -30925,7 +30925,7 @@ const getInputs = () => ({
   githubToken: core.getInput('github_token', { required: true }),
   npmToken: core.getInput('npm_token', { required: true }),
   commitHash: core.getInput('commit_hash', { required: true }),
-  isDryRun: core.getInput('dry_run') || false,
+  isDryRun: core.getInput('dry_run', { required: false }) === 'true',
 });
 
 // returns an object with the eventName and boolean properties

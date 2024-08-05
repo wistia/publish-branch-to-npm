@@ -36,34 +36,58 @@ test('getTrimmedPackageVersion()', () => {
 });
 
 test('getNpmAuthCommand()', () => {
+  const fakeAuthToken = 'fakeNpmToken';
+  const fakePackageWorkspace = '@namespace/package-name';
+
   assert.strictEqual(
-    getNpmAuthCommand('fakeNpmToken'),
+    getNpmAuthCommand(fakeAuthToken),
+    'npm config set  //registry.npmjs.org/:_authToken fakeNpmToken',
+  );
+
+  assert.strictEqual(
+    getNpmAuthCommand(fakeAuthToken, fakePackageWorkspace),
     'npm config set --workspaces=false --include-workspace-root //registry.npmjs.org/:_authToken fakeNpmToken',
   );
 });
 
 test('getUpdatePackageVersionCommand()', () => {
   const fakePackageVersion = '2.10.3-beta.12345678.0000000';
+  const fakePackageWorkspace = '@namespace/package-name';
 
   assert.strictEqual(
     getUpdatePackageVersionCommand(fakePackageVersion),
-    'npm version --git-tag-version false 2.10.3-beta.12345678.0000000',
+    'npm version  --git-tag-version false 2.10.3-beta.12345678.0000000',
   );
-});
-
-test('getPackageNameAndVersion()', () => {
-  const fakeName = '@namespace/package-name';
-  const fakePackageVersion = '2.10.3-beta.12345678.0000000';
 
   assert.strictEqual(
-    getPackageNameAndVersion(fakeName, fakePackageVersion),
-    '@namespace/package-name@2.10.3-beta.12345678.0000000',
+    getUpdatePackageVersionCommand(fakePackageVersion, fakePackageWorkspace),
+    'npm version --workspace @namespace/package-name --git-tag-version false 2.10.3-beta.12345678.0000000',
   );
 });
 
 test('getPublishPackageCommand()', () => {
+  const fakePackageWorkspace = '@namespace/package-name';
+
   assert.strictEqual(getPublishPackageCommand(), 'npm publish --verbose --tag beta');
   assert.strictEqual(getPublishPackageCommand(true), 'npm publish --verbose --tag beta --dry-run');
+  assert.strictEqual(
+    getPublishPackageCommand(false, fakePackageWorkspace),
+    'npm publish --verbose --tag beta --workspace @namespace/package-name',
+  );
+  assert.strictEqual(
+    getPublishPackageCommand(true, fakePackageWorkspace),
+    'npm publish --verbose --tag beta --workspace @namespace/package-name --dry-run',
+  );
+});
+
+test('getPackageNameAndVersion()', () => {
+  const fakePackageName = '@namespace/package-name';
+  const fakePackageVersion = '2.10.3-beta.12345678.0000000';
+
+  assert.strictEqual(
+    getPackageNameAndVersion(fakePackageName, fakePackageVersion),
+    '@namespace/package-name@2.10.3-beta.12345678.0000000',
+  );
 });
 
 test('generateInstallationInstructionsMarkdown()', () => {

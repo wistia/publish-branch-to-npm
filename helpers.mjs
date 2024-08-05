@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { endGroup, getInput, notice, startGroup } from '@actions/core';
+import { endGroup, getInput, notice, startGroup, info } from '@actions/core';
 import { getOctokit, context } from '@actions/github';
 
 // converts a boolean string value `value` into a boolean.
@@ -107,12 +107,14 @@ export const getUniqueVersion = (currentVersion, optionalCommitHash) => {
 // see: https://github.com/npm/cli/issues/6099
 export const getNpmAuthCommand = (npmToken, workspace) => {
   const flags = coerceToBoolean(workspace) ? '--workspaces=false --include-workspace-root' : '';
+  info(`npm config set ${flags} //registry.npmjs.org/:_authToken ${npmToken}`);
   return `npm config set ${flags} //registry.npmjs.org/:_authToken ${npmToken}`;
 };
 
 // updates version in package.json
 export const getUpdatePackageVersionCommand = (uniqueVersion, workspace) => {
   const flags = coerceToBoolean(workspace) ? `--workspace ${workspace}` : '';
+  info(`npm version ${flags} --git-tag-version false ${uniqueVersion}`);
   return `npm version ${flags} --git-tag-version false ${uniqueVersion}`;
 };
 
@@ -129,6 +131,7 @@ export const getPublishPackageCommand = (isDryRun, workspace) => {
     flags = `${flags} --dry-run`;
   }
 
+  info(`npm publish --verbose ${flags}`);
   return `npm publish --verbose ${flags}`;
 };
 
@@ -137,7 +140,9 @@ export const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniq
 
 // loads package.json from repo and returns the package name & version
 export const loadPackageJson = () => {
-  const packageJsonFilepath = join(getWorkingDirectory(), 'package.json');
+  const { workspace } = getInputs();
+  const workspacePath = coerceToBoolean(workspace) ? `packages/${workspace}` : '';
+  const packageJsonFilepath = join(getWorkingDirectory(), workspacePath, 'package.json');
   const packageJson = JSON.parse(readFileSync(packageJsonFilepath, 'utf8'));
 
   if (!packageJson) {
@@ -208,7 +213,7 @@ export const postCommentToPullRequest = async (packageName, packageNameAndVersio
 
   // string used to identify a comment in a PR made by this action
   // TODO: in a workspace setting it could be nice to combine the packages into a single comment
-  const commentIdentifier = `<!-- NPM_PUBLISH_BRANCH_COMMENT_PR_${packageName.toUppercase()} -->`;
+  const commentIdentifier = `<!-- NPM_PUBLISH_BRANCH_COMMENT_PR_${packageName.toUpperCase()} -->`;
   const { githubToken } = getInputs();
   const githubClient = getGithubClient(githubToken);
   const commentBody = generateInstallationInstructionsMarkdown(

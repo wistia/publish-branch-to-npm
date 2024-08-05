@@ -2,8 +2,16 @@ import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { endGroup, getInput, notice, startGroup, info } from '@actions/core';
+import { endGroup, getInput, notice, startGroup, debug } from '@actions/core';
 import { getOctokit, context } from '@actions/github';
+
+// wrapper for `debug` method; used to hide debug logs during tests
+const log = (args) => {
+  if (process.env.NODE_ENV === 'test') {
+    return null;
+  }
+  return debug(args);
+}
 
 // converts a boolean string value `value` into a boolean.
 // if passed something other than 'true' or 'false' will coerce value to boolean.
@@ -107,14 +115,14 @@ export const getUniqueVersion = (currentVersion, optionalCommitHash) => {
 // see: https://github.com/npm/cli/issues/6099
 export const getNpmAuthCommand = (npmToken, workspace) => {
   const flags = coerceToBoolean(workspace) ? '--workspaces=false --include-workspace-root' : '';
-  info(`npm config set ${flags} //registry.npmjs.org/:_authToken ${npmToken}`);
+  log(`npm config set ${flags} //registry.npmjs.org/:_authToken ${npmToken}`);
   return `npm config set ${flags} //registry.npmjs.org/:_authToken ${npmToken}`;
 };
 
 // updates version in package.json
 export const getUpdatePackageVersionCommand = (uniqueVersion, workspace) => {
   const flags = coerceToBoolean(workspace) ? `--workspace ${workspace}` : '';
-  info(`npm version ${flags} --git-tag-version false ${uniqueVersion}`);
+  log(`npm version ${flags} --git-tag-version false ${uniqueVersion}`);
   return `npm version ${flags} --git-tag-version false ${uniqueVersion}`;
 };
 
@@ -131,7 +139,7 @@ export const getPublishPackageCommand = (isDryRun, workspace) => {
     flags = `${flags} --dry-run`;
   }
 
-  info(`npm publish --verbose ${flags}`);
+  log(`npm publish --verbose ${flags}`);
   return `npm publish --verbose ${flags}`;
 };
 

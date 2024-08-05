@@ -16,6 +16,7 @@ export const coerceToBoolean = (value) => {
 
 // retrieves inputs that are defined in action.yml
 // errors are automatically thrown if required inputs are not present
+// TODO: `getBooleanInput` is available in @actions/core and could be useful here
 export const getInputs = () => {
   const workspaceInput = getInput('workspace', { required: false });
   const workspace = workspaceInput === '' ? undefined : workspaceInput;
@@ -259,18 +260,18 @@ export const displayInstallationInstructions = (name, uniqueVersion) => {
 };
 
 export const publishNpmPackage = (name, uniqueVersion) => {
-  const { npmToken, isDryRun } = getInputs();
+  const { npmToken, isDryRun, workspace } = getInputs();
 
   startGroup(`\nPublish ${name} package to registry in ${process.cwd()}`);
 
   // set auth token to allow publishing in CI
-  execSync(getNpmAuthCommand(npmToken));
+  execSync(getNpmAuthCommand(npmToken, workspace));
 
   // update version in package.json (does not get committed)
-  execSync(getUpdatePackageVersionCommand(uniqueVersion));
+  execSync(getUpdatePackageVersionCommand(uniqueVersion, workspace));
 
   // publish package
-  execSync(getPublishPackageCommand(isDryRun));
+  execSync(getPublishPackageCommand(isDryRun, workspace));
 
   endGroup();
 };

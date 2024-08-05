@@ -30920,15 +30920,30 @@ var github = __nccwpck_require__(5438);
 
 
 
+// converts a boolean string value `value` into a boolean.
+// if passed something other than 'true' or 'false' will coerce value to boolean.
+const coerceToBoolean = (value) => {
+  if (value === 'true' || value === 'false') {
+    return value === 'true';
+  }
+  return Boolean(value);
+};
+
 // retrieves inputs that are defined in action.yml
 // errors are automatically thrown if required inputs are not present
-const getInputs = () => ({
-  githubToken: (0,core.getInput)('github_token', { required: true }),
-  npmToken: (0,core.getInput)('npm_token', { required: true }),
-  commitHash: (0,core.getInput)('commit_hash', { required: true }),
-  isDryRun: (0,core.getInput)('dry_run', { required: false }) === 'true',
-  workingDirectory: (0,core.getInput)('working_directory', { required: false }) || '.',
-});
+const getInputs = () => {
+  const workspaceInput = (0,core.getInput)('workspace', { required: false });
+  const workspace = workspaceInput === '' ? undefined : workspaceInput;
+
+  return {
+    githubToken: (0,core.getInput)('github_token', { required: true }),
+    npmToken: (0,core.getInput)('npm_token', { required: true }),
+    commitHash: (0,core.getInput)('commit_hash', { required: true }),
+    workspace,
+    isDryRun: (0,core.getInput)('dry_run', { required: false }) === 'true',
+    workingDirectory: (0,core.getInput)('working_directory', { required: false }) || '.',
+  };
+};
 
 const getWorkingDirectory = () => {
   const githubWorkspace = process.env.GITHUB_WORKSPACE;
@@ -31004,31 +31019,31 @@ const getUniqueVersion = (currentVersion, optionalCommitHash) => {
 // set auth token to allow publishing in CI
 // flags are necessary to avoid errors in workspace repos
 // see: https://github.com/npm/cli/issues/6099
-const getNpmAuthCommand = (npmToken) =>
-  `npm config set --workspaces=false --include-workspace-root //registry.npmjs.org/:_authToken ${npmToken}`;
-
-// updates version in package.json
-const getUpdatePackageVersionCommand = (uniqueVersion) =>
-  `npm version --git-tag-version false ${uniqueVersion}`;
-
-// Converts a boolean string value `value` into a boolean.
-// If passed something other than 'true' or 'false' will coerce value to boolean.
-const coerceToBoolean = (value) => {
-  if (value === 'true' || value === 'false') {
-    return value === 'true';
-  }
-  return Boolean(value);
+const getNpmAuthCommand = (npmToken, workspace) => {
+  const flags = coerceToBoolean(workspace) ? '--workspaces=false --include-workspace-root' : '';
+  return `npm config set ${flags} //registry.npmjs.org/:_authToken ${npmToken}`;
 };
 
-// publish with "beta" tag since if we do not specify a tag, "latest" will be used by default
-const getPublishPackageCommand = (isDryRun) => {
-  let publishCommand = 'npm publish --verbose --tag beta';
+// updates version in package.json
+const getUpdatePackageVersionCommand = (uniqueVersion, workspace) => {
+  const flags = coerceToBoolean(workspace) ? `--workspace ${workspace}` : '';
+  return `npm version ${flags} --git-tag-version false ${uniqueVersion}`;
+};
 
-  if (coerceToBoolean(isDryRun)) {
-    publishCommand = `${publishCommand} --dry-run`;
+// creates an npm publish command with flags
+const getPublishPackageCommand = (isDryRun, workspace) => {
+  // publish with "beta" tag since if we do not specify a tag, "latest" will be used by default
+  let flags = '--tag beta';
+
+  if (coerceToBoolean(workspace)) {
+    flags = `${flags} --workspace ${workspace}`;
   }
 
-  return publishCommand;
+  if (coerceToBoolean(isDryRun)) {
+    flags = `${flags} --dry-run`;
+  }
+
+  return `npm publish --verbose ${flags}`;
 };
 
 // returns a fully qualified package and version for installation instructions

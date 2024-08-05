@@ -157,6 +157,7 @@ export const generateInstallationInstructionsMarkdown = (
   packageNameAndVersion,
   commentIdentifier,
 ) => {
+  // TODO: use Intl.DateTimeFormat to format date and time for different locales
   const currentDate = new Date();
 
   return `${commentIdentifier}
@@ -206,7 +207,8 @@ export const postCommentToPullRequest = async (packageName, packageNameAndVersio
   }
 
   // string used to identify a comment in a PR made by this action
-  const commentIdentifier = '<!-- NPM_PUBLISH_BRANCH_COMMENT_PR -->';
+  // TODO: in a workspace setting it could be nice to combine the packages into a single comment
+  const commentIdentifier = `<!-- NPM_PUBLISH_BRANCH_COMMENT_PR_${packageName.toUppercase()} -->`;
   const { githubToken } = getInputs();
   const githubClient = getGithubClient(githubToken);
   const commentBody = generateInstallationInstructionsMarkdown(

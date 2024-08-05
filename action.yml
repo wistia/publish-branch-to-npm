@@ -13,12 +13,16 @@ inputs:
     description: 'SHA-1 hash of the commit to publish'
     required: true
     default: '${{ github.event.pull_request.head.sha }}'
+  workspace:
+    description: 'Can be used to specify a workspace to publish'
+    required: false
+    default: ''
   dry_run:
     description: 'If true, will run action normally except it will not publish anything to npm'
     required: false
     default: 'false'
   working_directory:
-    description: 'The directory to run the publish command in (useful for monorepos)'
+    description: 'The directory to run commands in'
     required: false
     default: '.'
 

@@ -5,7 +5,7 @@ import {
   getWorkingDirectory,
   loadPackageJson,
   publishNpmPackage,
-} from './helpers.mjs';
+} from './src/helpers.mjs';
 
 try {
   // run all subsequent commands in the working directory

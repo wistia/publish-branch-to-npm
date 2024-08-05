@@ -1,4 +1,4 @@
-import core from '@actions/core';
+import { error as displayError, setFailed, info } from '@actions/core';
 import {
   displayInstallationInstructions,
   getUniqueVersion,
@@ -18,6 +18,7 @@ try {
 
   await displayInstallationInstructions(name, uniqueVersion);
 } catch (error) {
-  core.error(JSON.stringify(error));
-  core.setFailed(error.message);
+  displayError(JSON.stringify(error));
+  info('this is a test');
+  setFailed(error.message);
 }

@@ -31022,12 +31022,14 @@ const getUniqueVersion = (currentVersion, optionalCommitHash) => {
 // see: https://github.com/npm/cli/issues/6099
 const getNpmAuthCommand = (npmToken, workspace) => {
   const flags = coerceToBoolean(workspace) ? '--workspaces=false --include-workspace-root' : '';
+  (0,core.info)(`npm config set ${flags} //registry.npmjs.org/:_authToken ${npmToken}`);
   return `npm config set ${flags} //registry.npmjs.org/:_authToken ${npmToken}`;
 };
 
 // updates version in package.json
 const getUpdatePackageVersionCommand = (uniqueVersion, workspace) => {
   const flags = coerceToBoolean(workspace) ? `--workspace ${workspace}` : '';
+  (0,core.info)(`npm version ${flags} --git-tag-version false ${uniqueVersion}`);
   return `npm version ${flags} --git-tag-version false ${uniqueVersion}`;
 };
 
@@ -31044,6 +31046,7 @@ const getPublishPackageCommand = (isDryRun, workspace) => {
     flags = `${flags} --dry-run`;
   }
 
+  (0,core.info)(`npm publish --verbose ${flags}`);
   return `npm publish --verbose ${flags}`;
 };
 
@@ -31052,7 +31055,9 @@ const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniqueVersi
 
 // loads package.json from repo and returns the package name & version
 const loadPackageJson = () => {
-  const packageJsonFilepath = (0,external_node_path_namespaceObject.join)(getWorkingDirectory(), 'package.json');
+  const { workspace } = getInputs();
+  const workspacePath = coerceToBoolean(workspace) ? `packages/${workspace}` : '';
+  const packageJsonFilepath = (0,external_node_path_namespaceObject.join)(getWorkingDirectory(), workspacePath, 'package.json');
   const packageJson = JSON.parse((0,external_node_fs_namespaceObject.readFileSync)(packageJsonFilepath, 'utf8'));
 
   if (!packageJson) {
@@ -31123,7 +31128,7 @@ const postCommentToPullRequest = async (packageName, packageNameAndVersion) => {
 
   // string used to identify a comment in a PR made by this action
   // TODO: in a workspace setting it could be nice to combine the packages into a single comment
-  const commentIdentifier = `<!-- NPM_PUBLISH_BRANCH_COMMENT_PR_${packageName.toUppercase()} -->`;
+  const commentIdentifier = `<!-- NPM_PUBLISH_BRANCH_COMMENT_PR_${packageName.toUpperCase()} -->`;
   const { githubToken } = getInputs();
   const githubClient = getGithubClient(githubToken);
   const commentBody = generateInstallationInstructionsMarkdown(

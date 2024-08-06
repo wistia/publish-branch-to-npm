@@ -9,6 +9,7 @@
   "scripts": {
     "build": "ncc build index.mjs -o dist --source-map --license licenses.txt",
     "lint": "eslint --fix --cache --ext mjs .",
+    "lint:ci": "eslint --ext mjs .",
     "lint:debug": "eslint --print-config index.mjs",
     "preversion": "npm run build && git add -A dist",
     "test": "vitest"

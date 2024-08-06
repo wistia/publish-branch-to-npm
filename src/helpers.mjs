@@ -11,7 +11,7 @@ const log = (args) => {
     return null;
   }
   return debug(args);
-}
+};
 
 // converts a boolean string value `value` into a boolean.
 // if passed something other than 'true' or 'false' will coerce value to boolean.

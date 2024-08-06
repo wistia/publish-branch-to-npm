@@ -1,7 +1,9 @@
 module.exports = {
-  extends: ['@wistia/eslint-config',
-        '@wistia/eslint-config/node',
-        '@wistia/eslint-config/prettier',],
+  extends: [
+    '@wistia/eslint-config',
+    '@wistia/eslint-config/node',
+    '@wistia/eslint-config/prettier',
+  ],
   env: {
     node: true,
   },
@@ -19,9 +21,7 @@ module.exports = {
     // test files
     {
       files: ['*.test.mjs'],
-      rules: {
-        'id-length': ['error', { exceptions: ['t'] }],
-      },
+      extends: ['@wistia/eslint-config/vitest'],
     },
   ],
 };

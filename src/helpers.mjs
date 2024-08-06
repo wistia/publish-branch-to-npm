@@ -266,8 +266,15 @@ export const displayInstallationInstructions = (name, uniqueVersion) => {
   );
 };
 
-export const publishNpmPackage = (name, uniqueVersion) => {
+export const publishNpmPackage = async () => {
   const { npmToken, isDryRun, workspace } = getInputs();
+
+  // run all subsequent commands in the working directory
+  process.chdir(getWorkingDirectory());
+
+  // get a unique version for the package for publishing
+  const { name, currentVersion } = loadPackageJson();
+  const uniqueVersion = getUniqueVersion(currentVersion);
 
   startGroup(`\nPublish ${name} package to registry in ${process.cwd()}`);
 
@@ -279,6 +286,9 @@ export const publishNpmPackage = (name, uniqueVersion) => {
 
   // publish package
   execSync(getPublishPackageCommand(isDryRun, workspace));
+
+  // display installation instructions
+  await displayInstallationInstructions(name, uniqueVersion);
 
   endGroup();
 };

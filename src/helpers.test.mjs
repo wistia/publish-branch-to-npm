@@ -92,7 +92,7 @@ describe('helpers', () => {
   });
 
   describe('generateInstallationInstructionsMarkdown()', () => {
-    it('poop', () => {
+    it('should generate correct markdown instructions', () => {
       const fakeIdentifier = '<!-- TEST COMMENT -->';
       const comment = generateInstallationInstructionsMarkdown(
         fakePackageName,
@@ -109,7 +109,7 @@ describe('helpers', () => {
   });
 
   describe('getCommentId()', () => {
-    it('poop', () => {
+    it('should return the correct comment ID or null', () => {
       const fakeIdentifier = '<!-- TEST COMMENT -->';
       const fakeCommentListWithoutPreviousComment = [
         {
@@ -142,7 +142,7 @@ describe('helpers', () => {
   });
 
   describe('getGithubClient()', () => {
-    it('poop', () => {
+    it('should throw an error if token is missing', () => {
       try {
         getGithubClient();
       } catch (error) {
@@ -154,7 +154,7 @@ describe('helpers', () => {
 
   // run into `Input required and not supplied: github_token` error
   describe('getUniqueVersion()', () => {
-    it('poop', () => {
+    it('should generate a unique version string', () => {
       const fakeCurrentVersion = '1.1.1';
       const fakecommitHash = 'df20d95efe1569bb854f994217f8712cd3a29aa6';
 

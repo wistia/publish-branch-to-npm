@@ -1,5 +1,6 @@
 node_modules/
 dist/publish-branch-to-npm/
+coverage/
 
 # logs
 logs

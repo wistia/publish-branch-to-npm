@@ -12,7 +12,8 @@
     "lint:ci": "eslint --ext mjs .",
     "lint:debug": "eslint --print-config index.mjs",
     "preversion": "npm run build && git add -A dist",
-    "test": "vitest"
+    "test": "vitest",
+    "test:coverage": "vitest --coverage --watch=false"
   },
   "dependencies": {
     "@actions/core": "^1.10.1",

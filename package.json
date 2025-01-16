@@ -16,14 +16,14 @@
     "test:coverage": "vitest --coverage --watch=false"
   },
   "dependencies": {
-    "@actions/core": "^1.10.1",
+    "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.1",
-    "@vitest/coverage-v8": "^2.0.5",
-    "@wistia/eslint-config": "^0.35.0",
-    "vitest": "^2.0.5"
+    "@vercel/ncc": "^0.38.3",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@wistia/eslint-config": "^0.38.2",
+    "vitest": "^2.1.8"
   },
   "author": "Wistia Engineering",
   "license": "MIT",

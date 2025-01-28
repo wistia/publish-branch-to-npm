@@ -111,7 +111,7 @@ describe('helpers', () => {
       );
 
       expect(getUpdatePackageVersionCommand(fakePackageVersion, fakePackageWorkspace)).toBe(
-        'npm version --workspace @namespace/package-name --git-tag-version false 2.10.3-beta.12345678.0000000',
+        'npm version --workspace=@namespace/package-name --git-tag-version false 2.10.3-beta.12345678.0000000',
       );
     });
   });
@@ -121,10 +121,10 @@ describe('helpers', () => {
       expect(getPublishPackageCommand()).toBe('npm publish --verbose --tag beta');
       expect(getPublishPackageCommand(true)).toBe('npm publish --verbose --tag beta --dry-run');
       expect(getPublishPackageCommand(false, fakePackageWorkspace)).toBe(
-        'npm publish --verbose --tag beta --workspace @namespace/package-name',
+        'npm publish --verbose --tag beta --workspace=@namespace/package-name',
       );
       expect(getPublishPackageCommand(true, fakePackageWorkspace)).toBe(
-        'npm publish --verbose --tag beta --workspace @namespace/package-name --dry-run',
+        'npm publish --verbose --tag beta --workspace=@namespace/package-name --dry-run',
       );
     });
   });

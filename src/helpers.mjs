@@ -121,7 +121,7 @@ export const getNpmAuthCommand = (npmToken, workspace) => {
 
 // updates version in package.json
 export const getUpdatePackageVersionCommand = (uniqueVersion, workspace) => {
-  const flags = coerceToBoolean(workspace) ? `--workspace ${workspace}` : '';
+  const flags = coerceToBoolean(workspace) ? `--workspace=${workspace}` : '';
   log(`npm version ${flags} --git-tag-version false ${uniqueVersion}`);
   return `npm version ${flags} --git-tag-version false ${uniqueVersion}`;
 };
@@ -132,7 +132,7 @@ export const getPublishPackageCommand = (isDryRun, workspace) => {
   let flags = '--tag beta';
 
   if (coerceToBoolean(workspace)) {
-    flags = `${flags} --workspace ${workspace}`;
+    flags = `${flags} --workspace=${workspace}`;
   }
 
   if (coerceToBoolean(isDryRun)) {

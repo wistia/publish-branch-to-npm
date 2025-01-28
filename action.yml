@@ -14,7 +14,7 @@ inputs:
     required: true
     default: '${{ github.event.pull_request.head.sha }}'
   workspace:
-    description: 'Can be used to specify a workspace to publish (assumes package lives in ./packages/*)'
+    description: 'Can be used to specify a workspace to publish (ie. @organization/workspace)'
     required: false
     default: ''
   dry_run:

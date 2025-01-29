@@ -309,7 +309,24 @@ export const publishNpmPackage = async () => {
   execSync(getNpmAuthCommand(npmToken, workspace));
 
   // update version in package.json (does not get committed)
-  execSync(getUpdatePackageVersionCommand(uniqueVersion, workspace));
+  try {
+    execSync(getUpdatePackageVersionCommand(uniqueVersion, workspace));
+  } catch (error) {
+    // there's an issue with npm and any package.json entries that contain `workspace:*` fields
+    // this works fine with yarn/pnpm but npm does not support it
+    // thankfully the version will still be updated despite this error so we can ignore it
+    //
+    // `npm error code EUNSUPPORTEDPROTOCOL`
+    // `npm error Unsupported URL Type "workspace:": workspace:*`
+    if (error?.message?.includes('EUNSUPPORTEDPROTOCOL')) {
+      log(
+        'Warning: Encountered EUNSUPPORTEDPROTOCOL error from npm version command. Ignoring and continuing...',
+      );
+    } else {
+      // rethrow for any other errors
+      throw error;
+    }
+  }
 
   // publish package
   execSync(getPublishPackageCommand(isDryRun, workspace));

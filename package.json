@@ -19,12 +19,6 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0"
   },
-  "devDependencies": {
-    "@vercel/ncc": "^0.38.3",
-    "@vitest/coverage-v8": "^2.1.8",
-    "@wistia/eslint-config": "^0.38.2",
-    "vitest": "^2.1.8"
-  },
   "author": "Wistia Engineering",
   "license": "MIT",
   "keywords": [
@@ -41,5 +35,11 @@
   "bugs": {
     "url": "https://github.com/wistia/publish-branch-to-npm/issues"
   },
-  "homepage": "https://github.com/wistia/publish-branch-to-npm#readme"
+  "homepage": "https://github.com/wistia/publish-branch-to-npm#readme",
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3",
+    "@vitest/coverage-v8": "^3.0.4",
+    "@wistia/eslint-config": "^0.38.2",
+    "vitest": "^3.0.4"
+  }
 }

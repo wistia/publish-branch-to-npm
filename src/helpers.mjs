@@ -1,7 +1,6 @@
 import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
-import { readFileSync } from 'node:fs';
 import { endGroup, getInput, notice, startGroup, debug } from '@actions/core';
 import { getOctokit, context } from '@actions/github';
 
@@ -140,25 +139,45 @@ export const getPublishPackageCommand = (isDryRun, workspace) => {
   }
 
   log(`npm publish --verbose ${flags}`);
+
   return `npm publish --verbose ${flags}`;
 };
 
 // returns a fully qualified package and version for installation instructions
 export const getPackageNameAndVersion = (name, uniqueVersion) => `${name}@${uniqueVersion}`;
 
-// loads package.json from repo and returns the package name & version
-export const loadPackageJson = () => {
+// returns the package name & version
+export const getPackageMetadata = () => {
   const { workspace } = getInputs();
-  const workspacePath = coerceToBoolean(workspace) ? `packages/${workspace}` : '';
-  const packageJsonFilepath = join(getWorkingDirectory(), workspacePath, 'package.json');
-  const packageJson = JSON.parse(readFileSync(packageJsonFilepath, 'utf8'));
 
-  if (!packageJson) {
-    throw new Error('No package.json file could be found');
+  // run all subsequent commands in the working directory
+  process.chdir(getWorkingDirectory());
+
+  const isWorkspace = coerceToBoolean(workspace);
+  const flags = coerceToBoolean(workspace) ? ` --workspace=${workspace}` : '';
+
+  // run npm cli commands to get the package name and version
+  // - for a standard package, the output looks like `"1.6.0"` (including quotes)
+  // - for a workspace package, the output looks like json
+  const npmPkgVersion = execSync(`npm pkg get version${flags}`, { encoding: 'utf8' }).trim();
+  const npmPkgName = execSync(`npm pkg get name${flags}`, { encoding: 'utf8' }).trim();
+
+  let version;
+  let name;
+
+  if (isWorkspace) {
+    const parsedVersion = JSON.parse(npmPkgVersion);
+    const parsedName = JSON.parse(npmPkgName);
+
+    [version] = Object.values(parsedVersion);
+    [name] = Object.values(parsedName);
+  } else {
+    version = npmPkgVersion.replace(/^"|"$/g, '');
+    name = npmPkgName.replace(/^"|"$/g, '');
   }
 
-  const { name, version } = packageJson;
   const currentVersion = getTrimmedPackageVersion(version);
+
   return { name, currentVersion };
 };
 
@@ -281,7 +300,7 @@ export const publishNpmPackage = async () => {
   process.chdir(getWorkingDirectory());
 
   // get a unique version for the package for publishing
-  const { name, currentVersion } = loadPackageJson();
+  const { name, currentVersion } = getPackageMetadata();
   const uniqueVersion = getUniqueVersion(currentVersion);
 
   startGroup(`\nPublish ${name} package to registry in ${process.cwd()}`);

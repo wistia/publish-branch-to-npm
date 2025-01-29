@@ -1,5 +1,6 @@
 import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest'; // eslint-disable-line import/no-extraneous-dependencies
 import { getInput } from '@actions/core';
+import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import {
   coerceToBoolean,
@@ -13,12 +14,16 @@ import {
   getUniqueVersion,
   getUpdatePackageVersionCommand,
   getWorkingDirectory,
-  loadPackageJson,
+  getPackageMetadata,
   getEventType,
 } from './helpers.mjs';
 
 vi.mock('@actions/core', () => ({
   getInput: vi.fn(),
+}));
+
+vi.mock('node:child_process', () => ({
+  execSync: vi.fn(),
 }));
 
 vi.mock('node:fs', () => ({
@@ -35,14 +40,16 @@ describe('helpers', () => {
   const fakePackageWorkspace = fakePackageName;
 
   beforeEach(() => {
+    process.env.GITHUB_WORKSPACE = '/fake/github/workspace';
+
     getInput.mockImplementation((name) => {
       const inputs = {
         github_token: fakeGithubToken,
         npm_token: fakeNpmToken,
         commit_hash: fakecommitHash,
-        workspace: 'fakeWorkspace',
+        workspace: undefined,
         dry_run: 'true',
-        working_directory: 'fakeDir',
+        working_directory: undefined,
       };
       return inputs[name];
     });
@@ -56,6 +63,8 @@ describe('helpers', () => {
   });
 
   afterEach(() => {
+    delete process.env.GITHUB_WORKSPACE;
+
     vi.clearAllMocks();
   });
 
@@ -182,6 +191,7 @@ describe('helpers', () => {
   describe('getGithubClient()', () => {
     it('should throw an error if token is missing', () => {
       try {
+        delete process.env.GITHUB_WORKSPACE;
         getGithubClient();
       } catch (error) {
         expect(error).toBeInstanceOf(Error); // eslint-disable-line vitest/no-conditional-expect
@@ -201,10 +211,6 @@ describe('helpers', () => {
   });
 
   describe('getWorkingDirectory()', () => {
-    afterEach(() => {
-      delete process.env.GITHUB_WORKSPACE;
-    });
-
     it('throws an error if GITHUB_WORKSPACE is not set', () => {
       try {
         getWorkingDirectory();
@@ -215,23 +221,71 @@ describe('helpers', () => {
     });
 
     it('should return the correct working directory', () => {
-      process.env.GITHUB_WORKSPACE = '/fake/github/workspace';
+      getInput.mockImplementation((key) => {
+        if (key === 'working_directory') return './fakeDir';
+        return '';
+      });
+
       const workingDir = getWorkingDirectory();
 
       expect(workingDir).toBe('/fake/github/workspace/fakeDir');
     });
   });
 
-  describe('loadPackageJson()', () => {
-    afterEach(() => {
-      delete process.env.GITHUB_WORKSPACE;
+  describe('getPackageMetadata()', () => {
+    beforeEach(() => {
+      // don't let process.chdir actually do anything during tests
+      vi.spyOn(process, 'chdir').mockImplementation(() => {});
     });
 
-    it('executes in the current working directory by default', () => {
-      process.env.GITHUB_WORKSPACE = process.cwd();
-      const { name } = loadPackageJson();
+    it('loads name and version for a standard (non-workspace) package', () => {
+      // for a standard package, `npm pkg get` returns a quoted string for version and name
+      execSync
+        .mockReturnValueOnce('"1.6.0"\n') // version
+        .mockReturnValueOnce('"@namespace/package-name"\n'); // name
 
-      expect(name).toBe('publish-branch-to-npm');
+      const { name, currentVersion } = getPackageMetadata();
+
+      expect(execSync).toHaveBeenCalledWith('npm pkg get version', { encoding: 'utf8' });
+      expect(execSync).toHaveBeenCalledWith('npm pkg get name', { encoding: 'utf8' });
+      expect(name).toBe('@namespace/package-name');
+      expect(currentVersion).toBe('1.6.0');
+    });
+
+    it('loads name and version for a workspace package', () => {
+      // We'll set the input `workspace` to something truthy, e.g. '@namespace/workspace-package-name'
+      getInput.mockImplementation((key) => {
+        if (key === 'workspace') return '@namespace/workspace-package-name';
+        if (key === 'working_directory') return '.';
+        // fallback:
+        return '';
+      });
+
+      // For a workspace, npm pkg get returns a JSON object
+      execSync
+        .mockReturnValueOnce('{"@namespace/workspace-package-name": "0.4.0"}\n') // version
+        .mockReturnValueOnce(
+          '{"@namespace/workspace-package-name": "@namespace/workspace-package-name"}\n',
+        ); // name
+
+      const { name, currentVersion } = getPackageMetadata();
+
+      // The final commands should have included --workspace=@namespace/workspace-package-name
+      expect(execSync).toHaveBeenCalledWith(
+        'npm pkg get version --workspace=@namespace/workspace-package-name',
+        {
+          encoding: 'utf8',
+        },
+      );
+      expect(execSync).toHaveBeenCalledWith(
+        'npm pkg get name --workspace=@namespace/workspace-package-name',
+        {
+          encoding: 'utf8',
+        },
+      );
+
+      expect(name).toBe('@namespace/workspace-package-name');
+      expect(currentVersion).toBe('0.4.0');
     });
   });
 

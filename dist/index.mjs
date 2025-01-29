@@ -31857,8 +31857,8 @@ const getPackageMetadata = () => {
     const parsedVersion = JSON.parse(npmPkgVersion);
     const parsedName = JSON.parse(npmPkgName);
 
-    version = Object.values(parsedVersion)[0];
-    name = Object.values(parsedName)[0];
+    [version] = Object.values(parsedVersion);
+    [name] = Object.values(parsedName);
   } else {
     version = npmPkgVersion.replace(/^"|"$/g, '');
     name = npmPkgName.replace(/^"|"$/g, '');
@@ -31997,7 +31997,24 @@ const publishNpmPackage = async () => {
   (0,external_node_child_process_namespaceObject.execSync)(getNpmAuthCommand(npmToken, workspace));
 
   // update version in package.json (does not get committed)
-  (0,external_node_child_process_namespaceObject.execSync)(getUpdatePackageVersionCommand(uniqueVersion, workspace));
+  try {
+    (0,external_node_child_process_namespaceObject.execSync)(getUpdatePackageVersionCommand(uniqueVersion, workspace));
+  } catch (error) {
+    // there's an issue with npm and any package.json entries that contain `workspace:*` fields
+    // this works fine with yarn/pnpm but npm does not support it
+    // thankfully the version will still be updated despite this error so we can ignore it
+    //
+    // `npm error code EUNSUPPORTEDPROTOCOL`
+    // `npm error Unsupported URL Type "workspace:": workspace:*`
+    if (error?.message?.includes('EUNSUPPORTEDPROTOCOL')) {
+      log(
+        'Warning: Encountered EUNSUPPORTEDPROTOCOL error from npm version command. Ignoring and continuing...',
+      );
+    } else {
+      // rethrow for any other errors
+      throw error;
+    }
+  }
 
   // publish package
   (0,external_node_child_process_namespaceObject.execSync)(getPublishPackageCommand(isDryRun, workspace));

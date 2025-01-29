@@ -22,7 +22,7 @@ inputs:
     required: false
     default: 'false'
   working_directory:
-    description: 'The directory to run commands in'
+    description: 'The directory to run commands in (ie. the root directory of the package/s)'
     required: false
     default: '.'
 

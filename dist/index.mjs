@@ -31897,6 +31897,12 @@ const generateInstallationInstructionsMarkdown = (
   npm install ${packageNameAndVersion}
   \`\`\`
 
+  #### pnpm:
+
+  \`\`\`shell
+  pnpm add ${packageNameAndVersion}
+  \`\`\`
+
   _Note: if you continue to push commits to this PR, new packages will be deployed and this comment will update itself with the new version to install._
 
   ---
@@ -31916,6 +31922,8 @@ A new package containing your PR commits has been published! Run one of the comm
   * yarn add ${packageNameAndVersion}
 
   * npm install ${packageNameAndVersion}
+
+  * pnpm add ${packageNameAndVersion}
 `;
 
 // posts a comment to the PR if none have been posted yet, but any new posts

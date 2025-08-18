@@ -2,7 +2,8 @@ name: Lint
 
 on:
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
@@ -15,7 +16,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Parse .tool-versions
         uses: wistia/parse-tool-versions@v1.0
@@ -39,4 +40,4 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: yarn lint:ci
+        run: npm run lint:ci

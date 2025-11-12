@@ -37,9 +37,9 @@
   },
   "homepage": "https://github.com/wistia/publish-branch-to-npm#readme",
   "devDependencies": {
-    "@vercel/ncc": "^0.38.3",
-    "@vitest/coverage-v8": "^3.2.4",
-    "@wistia/eslint-config": "^0.41.2",
+    "@vercel/ncc": "^0.38.4",
+    "@vitest/coverage-v8": "^4.0.8",
+    "@wistia/eslint-config": "^0.43.0",
     "vitest": "^4.0.8"
   }
 }

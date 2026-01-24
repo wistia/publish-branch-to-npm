@@ -39,7 +39,7 @@
   "devDependencies": {
     "@vercel/ncc": "^0.38.4",
     "@vitest/coverage-v8": "^4.0.8",
-    "@wistia/eslint-config": "^0.43.0",
+    "eslint": "^9.39.2",
     "vitest": "^4.0.8"
   }
 }

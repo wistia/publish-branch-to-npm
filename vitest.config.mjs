@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'; // eslint-disable-line import/no-extraneous-dependencies
+import { defineConfig } from 'vitest/config'; // eslint-disable-line import/no-unresolved
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({

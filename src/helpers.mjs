@@ -74,7 +74,7 @@ export const getCommentId = (commentList, commentIdentifier) => {
 };
 
 // returns an array of comments from current PR
-export const getCommentList = async (client, issue) => {
+export const getCommentList = (client, issue) => {
   const options = {
     owner: issue.owner,
     repo: issue.repo,

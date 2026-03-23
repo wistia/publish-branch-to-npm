@@ -23,7 +23,7 @@
     "@vercel/ncc": "^0.38.4",
     "@vitest/coverage-v8": "^4.1.1",
     "@wistia/eslint-config": "^1.6.2",
-    "eslint": "^9.39.2",
+    "eslint": "^10.1.0",
     "vitest": "^4.1.1"
   },
   "author": "Wistia Engineering",

@@ -1,4 +1,4 @@
-import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest'; // eslint-disable-line import/no-extraneous-dependencies
+import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest'; // eslint-disable-line import-x/no-extraneous-dependencies
 import { getInput } from '@actions/core';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -18,15 +18,15 @@ import {
   getEventType,
 } from './helpers.mjs';
 
-vi.mock('@actions/core', () => ({
+vi.mock(import('@actions/core'), () => ({
   getInput: vi.fn(),
 }));
 
-vi.mock('node:child_process', () => ({
+vi.mock(import('node:child_process'), () => ({
   execSync: vi.fn(),
 }));
 
-vi.mock('node:fs', () => ({
+vi.mock(import('node:fs'), () => ({
   readFileSync: vi.fn(),
 }));
 
@@ -54,7 +54,7 @@ describe('helpers', () => {
       return inputs[name];
     });
 
-    readFileSync.mockImplementation(() =>
+    readFileSync.mockReturnValue(
       JSON.stringify({
         name: 'publish-branch-to-npm',
         version: '1.0.0',

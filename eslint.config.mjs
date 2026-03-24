@@ -1,10 +1,9 @@
-/* eslint-disable import/no-unresolved */
 import { defineConfig } from 'eslint/config';
 import wistiaBaseConfig from '@wistia/eslint-config/javascript';
 import wistiaNodeConfig from '@wistia/eslint-config/node';
 import wistiaVitestConfig from '@wistia/eslint-config/vitest';
 
-// eslint-disable-next-line import/no-default-export
+// eslint-disable-next-line import-x/no-default-export
 export default defineConfig([
   {
     // list of files to ignore
@@ -21,7 +20,7 @@ export default defineConfig([
   {
     files: ['**/*.mjs'],
     settings: {
-      'import/resolver': {
+      'import-x/resolver': {
         node: {
           extensions: ['.js', '.mjs', '.json'],
         },

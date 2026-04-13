@@ -16,18 +16,18 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Parse .tool-versions
-        uses: wistia/parse-tool-versions@v1.0
+        uses: wistia/parse-tool-versions@9b83f64a97423b071339ef0906937177701c1bba # v1.0
 
       - name: Set up Node.js environment
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ env.NODEJS_TOOL_VERSION }}
 
       - name: Cache node_modules
-        uses: actions/cache@v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         id: cache-modules
         with:
           path: '**/node_modules'
@@ -46,4 +46,4 @@ jobs:
 
       - name: Report coverage
         if: always()
-        uses: davelosert/vitest-coverage-report-action@v2
+        uses: davelosert/vitest-coverage-report-action@3c50566c523e04813df28de8f7c48dd97d663f1c # v2.11.2

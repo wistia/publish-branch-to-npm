@@ -43,7 +43,3 @@ jobs:
         run: npm run test:coverage
         env:
           NODE_ENV: test
-
-      - name: Report coverage
-        if: always()
-        uses: davelosert/vitest-coverage-report-action@3c50566c523e04813df28de8f7c48dd97d663f1c # v2.11.2

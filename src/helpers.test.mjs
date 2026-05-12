@@ -1,4 +1,4 @@
-import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest'; // eslint-disable-line import-x/no-extraneous-dependencies
+import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest';
 import { getInput } from '@actions/core';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -222,7 +222,9 @@ describe('helpers', () => {
 
     it('should return the correct working directory', () => {
       getInput.mockImplementation((key) => {
-        if (key === 'working_directory') return './fakeDir';
+        if (key === 'working_directory') {
+          return './fakeDir';
+        }
         return '';
       });
 
@@ -255,8 +257,12 @@ describe('helpers', () => {
     it('loads name and version for a workspace package', () => {
       // We'll set the input `workspace` to something truthy, e.g. '@namespace/workspace-package-name'
       getInput.mockImplementation((key) => {
-        if (key === 'workspace') return '@namespace/workspace-package-name';
-        if (key === 'working_directory') return '.';
+        if (key === 'workspace') {
+          return '@namespace/workspace-package-name';
+        }
+        if (key === 'working_directory') {
+          return '.';
+        }
         // fallback:
         return '';
       });

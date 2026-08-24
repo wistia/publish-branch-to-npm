@@ -1,5 +1,5 @@
-import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import { join } from 'node:path';
 import { endGroup, getInput, notice, startGroup, debug } from '@actions/core';
 import { getOctokit, context } from '@actions/github';
@@ -103,9 +103,9 @@ export const getTrimmedPackageVersion = (version) =>
 // must be valid semver https://semver.org/
 export const getUniqueVersion = (currentVersion, optionalCommitHash) => {
   const versionPrefix = 'beta'; // alpha, rc
-  const randomish = crypto.randomUUID().substring(0, 8);
+  const randomish = crypto.randomUUID().slice(0, 8);
   const commitHash = optionalCommitHash || getInputs().commitHash;
-  const hash = commitHash.substring(0, 7);
+  const hash = commitHash.slice(0, 7);
   return `${currentVersion}-${versionPrefix}.${randomish}.${hash}`;
 };
 
@@ -172,8 +172,8 @@ export const getPackageMetadata = () => {
     [version] = Object.values(parsedVersion);
     [name] = Object.values(parsedName);
   } else {
-    version = npmPkgVersion.replace(/^"|"$/g, '');
-    name = npmPkgName.replace(/^"|"$/g, '');
+    version = npmPkgVersion.replaceAll(/^"|"$/g, '');
+    name = npmPkgName.replaceAll(/^"|"$/g, '');
   }
 
   const currentVersion = getTrimmedPackageVersion(version);

@@ -1,7 +1,7 @@
-import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest';
-import { getInput } from '@actions/core';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { getInput } from '@actions/core';
+import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest';
 import {
   coerceToBoolean,
   generateInstallationInstructionsMarkdown,
@@ -77,7 +77,7 @@ describe('helpers', () => {
       expect(coerceToBoolean(null)).toBe(false);
       expect(coerceToBoolean(undefined)).toBe(false);
       expect(coerceToBoolean('string')).toBe(true);
-      expect(coerceToBoolean(NaN)).toBe(false);
+      expect(coerceToBoolean(Number.NaN)).toBe(false);
     });
   });
 
@@ -194,8 +194,8 @@ describe('helpers', () => {
         delete process.env.GITHUB_WORKSPACE;
         getGithubClient();
       } catch (error) {
-        expect(error).toBeInstanceOf(Error); // eslint-disable-line vitest/no-conditional-expect
-        expect(error.message).toBe('Parameter token or opts.auth is required'); // eslint-disable-line vitest/no-conditional-expect
+        expect(error).toBeInstanceOf(Error); // oxlint-disable-line vitest/no-conditional-expect
+        expect(error.message).toBe('Parameter token or opts.auth is required'); // oxlint-disable-line vitest/no-conditional-expect
       }
     });
   });
@@ -215,13 +215,14 @@ describe('helpers', () => {
       try {
         getWorkingDirectory();
       } catch (error) {
-        expect(error).toBeInstanceOf(Error); // eslint-disable-line vitest/no-conditional-expect
-        expect(error.message).toBe('GITHUB_WORKSPACE env var missing'); // eslint-disable-line vitest/no-conditional-expect
+        expect(error).toBeInstanceOf(Error); // oxlint-disable-line vitest/no-conditional-expect
+        expect(error.message).toBe('GITHUB_WORKSPACE env var missing'); // oxlint-disable-line vitest/no-conditional-expect
       }
     });
 
     it('should return the correct working directory', () => {
       getInput.mockImplementation((key) => {
+        // oxlint-disable-next-line vitest/no-conditional-in-test
         if (key === 'working_directory') {
           return './fakeDir';
         }
@@ -257,9 +258,11 @@ describe('helpers', () => {
     it('loads name and version for a workspace package', () => {
       // We'll set the input `workspace` to something truthy, e.g. '@namespace/workspace-package-name'
       getInput.mockImplementation((key) => {
+        // oxlint-disable-next-line vitest/no-conditional-in-test
         if (key === 'workspace') {
           return '@namespace/workspace-package-name';
         }
+        // oxlint-disable-next-line vitest/no-conditional-in-test
         if (key === 'working_directory') {
           return '.';
         }
@@ -337,8 +340,8 @@ describe('helpers', () => {
       try {
         getEventType();
       } catch (error) {
-        expect(error).toBeInstanceOf(Error); // eslint-disable-line vitest/no-conditional-expect
-        expect(error.message).toBe('GITHUB_EVENT_NAME env var missing'); // eslint-disable-line vitest/no-conditional-expect
+        expect(error).toBeInstanceOf(Error); // oxlint-disable-line vitest/no-conditional-expect
+        expect(error.message).toBe('GITHUB_EVENT_NAME env var missing'); // oxlint-disable-line vitest/no-conditional-expect
       }
     });
   });

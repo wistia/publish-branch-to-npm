@@ -39,5 +39,8 @@ jobs:
         if: steps.cache-modules.outputs.cache-hit != 'true'
         run: npm ci
 
-      - name: Run ESLint
+      - name: Run Oxlint
         run: npm run lint:ci
+
+      - name: Run oxfmt
+        run: npm run format:ci

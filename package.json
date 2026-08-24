@@ -24,6 +24,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "@wistia/eslint-config": "^2.10.1",
     "eslint": "^10.8.1",
+    "oxlint": "^1.78.0",
     "vitest": "^4.1.10"
   },
   "author": "Wistia Engineering",

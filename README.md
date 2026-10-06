@@ -20,6 +20,12 @@ Does everything publish would do except actually publishing to the registry. Rep
 
 The SHA-1 hash of the commit to publish; this is set automatically and does not need to be provided, unless `workflow_dispatch` trigger is used (see below).
 
+### workspace
+
+The name of the workspace to publish in a monorepo (ie. `@organization/workspace`). `workspace` is optional.
+
+When `workspace` is set, the action runs `npm version` with `--workspaces-update=false`, so npm does not install dependencies after it updates the version. Install dependencies and build the package in an earlier step.
+
 ## Usage
 
 This action can be triggered by **`pull_request`** and **`workflow_dispatch`** event triggers:

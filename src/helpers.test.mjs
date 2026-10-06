@@ -120,7 +120,7 @@ describe('helpers', () => {
       );
 
       expect(getUpdatePackageVersionCommand(fakePackageVersion, fakePackageWorkspace)).toBe(
-        'npm version --workspace=@namespace/package-name --git-tag-version false 2.10.3-beta.12345678.0000000',
+        'npm version --workspace=@namespace/package-name --workspaces-update=false --git-tag-version false 2.10.3-beta.12345678.0000000',
       );
     });
   });

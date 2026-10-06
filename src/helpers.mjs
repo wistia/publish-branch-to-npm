@@ -119,8 +119,12 @@ export const getNpmAuthCommand = (npmToken, workspace) => {
 };
 
 // updates version in package.json
+// `--workspaces-update=false` skips the install npm runs after versioning a workspace;
+// it can fail on peer conflicts (ERESOLVE) that have nothing to do with the version bump
 export const getUpdatePackageVersionCommand = (uniqueVersion, workspace) => {
-  const flags = coerceToBoolean(workspace) ? `--workspace=${workspace}` : '';
+  const flags = coerceToBoolean(workspace)
+    ? `--workspace=${workspace} --workspaces-update=false`
+    : '';
   log(`npm version ${flags} --git-tag-version false ${uniqueVersion}`);
   return `npm version ${flags} --git-tag-version false ${uniqueVersion}`;
 };

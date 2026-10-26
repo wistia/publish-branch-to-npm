@@ -8,7 +8,7 @@ The action publishes with [npm trusted publishing](https://docs.npmjs.com/truste
 
 Do these steps once for each repository and package.
 
-1. Give the job that runs this action these permissions:
+1. Give the job (or the whole workflow) that runs this action these permissions:
 
    ```yml
    permissions:
@@ -27,17 +27,24 @@ Do these steps once for each repository and package.
 
    The package must publish successfully within 2 days, or the new configuration expires.
 
-3. Run the job on a GitHub-hosted runner with npm 11.5.1 or later and Node 22.14.0 or later. Node 24.6.0 and later include npm 11.5.1 or later.
+3. Run the job on a GitHub-hosted runner with npm 11.5.1 or later and Node 22.14.0 or later.
+   - The action runs the npm on the `PATH`, usually from `actions/setup-node`. It does not bring its own npm.
+   - Node 24.5.0 and later include npm 11.5.1 or later. Node 22 includes npm 10, so run `npm install --global npm@^11.5.1` before this action.
 4. Make `repository.url` in the `package.json` of the package match the GitHub repository exactly.
-5. Remove other npm tokens from the job, for example `NODE_AUTH_TOKEN`. If trusted publishing fails, npm uses a token that it finds instead.
+5. Do not set an npm token for the job or the workflow, for example `NODE_AUTH_TOKEN`. If trusted publishing fails, npm uses a token that it finds instead. If a step that installs private dependencies needs a token, set it in the `env` of that step only.
 
 If the job does not have the `id-token: write` permission, the action fails before it runs npm. A dry run skips this check.
 
+If a publish fails, look for lines that contain `oidc` in the job log. The action runs `npm publish --verbose`, so npm logs why trusted publishing failed.
+
 ### Upgrading from v2
 
-1. Delete the `npm_token` line from the workflow step.
-2. Do every step in [Setup](#setup).
-3. After a branch package publishes, delete the npm token secret if nothing else uses it.
+1. In one change, set `uses:` to `wistia/publish-branch-to-npm@v3.0.0` (or its commit SHA) and delete the `npm_token` line. v2 fails without `npm_token`.
+2. Do every step in [Setup](#setup). Add the trusted publisher on npmjs.com only when the change is ready.
+3. Publish a branch package within 2 days of adding the trusted publisher. Open a pull request, or run the workflow by hand.
+4. After a branch package publishes, delete the npm token secret if nothing else uses it.
+
+A bot pull request that only changes the version in `uses:` fails at the `id-token: write` check until you finish Setup.
 
 ## Inputs
 
@@ -84,7 +91,7 @@ If new commits are pushed to to a pre-existing branch, the comment will update i
 
 ### workflow_dispatch
 
-This action can also be triggered manually.
+This action can also be triggered manually. The job needs the permissions in [Setup](#setup).
 
 ```yml
 on:

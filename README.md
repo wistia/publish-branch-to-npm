@@ -13,7 +13,7 @@ Do these steps once for each repository and package.
    ```yml
    permissions:
      contents: read # check out the repository
-     pull-requests: write # post the installation comment
+     pull-requests: write # pull_request trigger only: post the installation comment
      id-token: write # npm trusted publishing
    ```
 
@@ -35,13 +35,13 @@ Do these steps once for each repository and package.
 
 If the job does not have the `id-token: write` permission, the action fails before it runs npm. A dry run skips this check.
 
-If a publish fails, look for lines that contain `oidc` in the job log. The action runs `npm publish --verbose`, so npm logs why trusted publishing failed.
+If a publish fails, look for lines that contain `oidc` in the job log. The action runs `npm publish --verbose`, so npm logs why trusted publishing failed. No `oidc` lines at all usually means that the npm on the `PATH` is too old (see step 3).
 
 ### Upgrading from v2
 
-1. In one change, set `uses:` to `wistia/publish-branch-to-npm@v3.0.0` (or its commit SHA) and delete the `npm_token` line. v2 fails without `npm_token`.
-2. Do every step in [Setup](#setup). Add the trusted publisher on npmjs.com only when the change is ready.
-3. Publish a branch package within 2 days of adding the trusted publisher. Open a pull request, or run the workflow by hand.
+1. In one change, set `uses:` to `wistia/publish-branch-to-npm@v3.0.0` (or its commit SHA), delete the `npm_token` line, and make the repository edits in [Setup](#setup) steps 1, 3, 4 and 5. v2 fails without `npm_token`.
+2. Add the trusted publisher on npmjs.com (Setup step 2) only when the change is ready.
+3. Publish a branch package within 2 days of adding the trusted publisher. Open a pull request, or run the workflow by hand from the branch with the change ("Use workflow from").
 4. After a branch package publishes, delete the npm token secret if nothing else uses it.
 
 A bot pull request that only changes the version in `uses:` fails at the `id-token: write` check until you finish Setup.

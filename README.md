@@ -22,7 +22,7 @@ Do these steps once for each repository and package.
 2. On npmjs.com, add a trusted publisher to each package. See [the npm docs](https://docs.npmjs.com/trusted-publishers#for-github-actions).
    - Publisher: GitHub Actions.
    - Owner and repository: the repository that runs this action.
-   - Workflow filename: the file that runs this action, for example `publish-branch-package.yml`. Give only the filename, not the path.
+   - Workflow filename: the file that runs this action, for example `publish-branch-package.yml`. Give only the filename, not the path. If a workflow calls a reusable workflow that runs this action, give the filename of the calling workflow, and give `id-token: write` to both workflows. See [npm troubleshooting](https://docs.npmjs.com/trusted-publishers#troubleshooting).
    - Allowed actions: allow `npm publish`. This action uses `npm publish`. Configurations created after September 3, 2026 allow only `npm stage publish` by default.
 
    The package must publish successfully within 2 days, or the new configuration expires.

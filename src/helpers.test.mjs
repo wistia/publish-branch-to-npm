@@ -107,7 +107,7 @@ describe('helpers', () => {
     it('does not read an npm token', () => {
       const inputs = getInputs();
 
-      expect(getInput).not.toHaveBeenCalledWith('npm_token', expect.anything());
+      expect(getInput.mock.calls.map(([name]) => name)).not.toContain('npm_token');
       expect(inputs).not.toHaveProperty('npmToken');
     });
   });
@@ -362,19 +362,26 @@ describe('helpers', () => {
 
     const getExecutedCommands = () => execSync.mock.calls.map(([command]) => command);
 
+    // output keyed by command, so a test that stops early leaves nothing queued for the next one
+    const npmOutput = {
+      'npm pkg get version': '"1.6.0"\n',
+      'npm pkg get name': '"@namespace/package-name"\n',
+    };
+
     beforeEach(() => {
       // don't let process.chdir actually do anything during tests
       vi.spyOn(process, 'chdir').mockImplementation(() => {});
       // workflow_dispatch shows instructions in an annotation, so no GitHub API calls are made
-      process.env.GITHUB_EVENT_NAME = 'workflow_dispatch';
-      execSync
-        .mockReturnValueOnce('"1.6.0"\n') // version
-        .mockReturnValueOnce('"@namespace/package-name"\n'); // name
+      vi.stubEnv('GITHUB_EVENT_NAME', 'workflow_dispatch');
+      // start without the id-token permission, even when the test runner has one
+      vi.stubEnv('ACTIONS_ID_TOKEN_REQUEST_URL', undefined);
+      execSync.mockImplementation((command) => npmOutput[command]);
     });
 
     afterEach(() => {
-      delete process.env.GITHUB_EVENT_NAME;
-      delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL;
+      vi.unstubAllEnvs();
+      vi.restoreAllMocks();
+      execSync.mockReset();
     });
 
     it('fails before running npm when the job lacks the id-token permission', async () => {
@@ -388,7 +395,7 @@ describe('helpers', () => {
 
     it('publishes without setting an npm auth token', async () => {
       mockInputs({ dry_run: 'false' });
-      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://token.actions.example.com/';
+      vi.stubEnv('ACTIONS_ID_TOKEN_REQUEST_URL', 'https://token.actions.example.com/');
 
       await publishNpmPackage();
 

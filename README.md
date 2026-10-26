@@ -2,15 +2,48 @@
 
 GitHub action to publish a pre-release version of an npm package to the registry.
 
+The action publishes with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers). It does not use an npm token.
+
+## Setup
+
+Do these steps once for each repository and package.
+
+1. Give the job that runs this action these permissions:
+
+   ```yml
+   permissions:
+     contents: read # check out the repository
+     pull-requests: write # post the installation comment
+     id-token: write # npm trusted publishing
+   ```
+
+   A `permissions` block sets every permission it does not name to `none`. Keep any other permission that the job already needs.
+
+2. On npmjs.com, add a trusted publisher to each package. See [the npm docs](https://docs.npmjs.com/trusted-publishers#for-github-actions).
+   - Publisher: GitHub Actions.
+   - Owner and repository: the repository that runs this action.
+   - Workflow filename: the file that runs this action, for example `publish-branch-package.yml`. Give only the filename, not the path.
+   - Allowed actions: allow `npm publish`. This action uses `npm publish`. Configurations created after September 3, 2026 allow only `npm stage publish` by default.
+
+   The package must publish successfully within 2 days, or the new configuration expires.
+
+3. Run the job on a GitHub-hosted runner with npm 11.5.1 or later and Node 22.14.0 or later. Node 24.6.0 and later include npm 11.5.1 or later.
+4. Make `repository.url` in the `package.json` of the package match the GitHub repository exactly.
+5. Remove other npm tokens from the job, for example `NODE_AUTH_TOKEN`. If trusted publishing fails, npm uses a token that it finds instead.
+
+If the job does not have the `id-token: write` permission, the action fails before it runs npm. A dry run skips this check.
+
+### Upgrading from v2
+
+1. Delete the `npm_token` line from the workflow step.
+2. Do every step in [Setup](#setup).
+3. After a branch package publishes, delete the npm token secret if nothing else uses it.
+
 ## Inputs
 
 ### github_token
 
 A token that GitHub automatically creates and stores in a `GITHUB_TOKEN` secret to use in your workflow.
-
-### npm_token
-
-An npm access token. See [https://docs.npmjs.com/creating-and-viewing-access-tokens](https://docs.npmjs.com/creating-and-viewing-access-tokens)
 
 ### dry_run
 
@@ -32,17 +65,16 @@ This action can be triggered by **`pull_request`** and **`workflow_dispatch`** e
 
 ### pull_request
 
-Add the following step to your workflow job (after repo checkout, node setup, etc):
+Add the following step to your workflow job (after repo checkout, node setup, etc). The job needs the permissions in [Setup](#setup).
 
 ```yml
 - name: Publish branch package to npm
-  uses: wistia/publish-branch-to-npm@v1.0.0
+  uses: wistia/publish-branch-to-npm@v3.0.0
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
-    npm_token: ${{ secrets.NPM_AUTH_TOKEN }}
 ```
 
-`github_token` and `npm_token` are required inputs and this action cannot work without them.
+`github_token` is a required input and this action cannot work without it.
 
 When the action completes, you should see a comment like this in new Pull Requests:
 
@@ -63,10 +95,9 @@ on:
         required: true
 ---
 - name: Publish branch package to npm
-  uses: wistia/publish-branch-to-npm@mew/debugging
+  uses: wistia/publish-branch-to-npm@v3.0.0
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
-    npm_token: ${{ secrets.NPM_AUTH_TOKEN }}
     commit_hash: ${{ github.event.inputs.commit_hash }}
 ```
 

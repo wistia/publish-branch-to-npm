@@ -6,9 +6,6 @@ inputs:
   github_token:
     description: 'GitHub authorization token'
     required: true
-  npm_token:
-    description: 'npm authorization token'
-    required: true
   commit_hash:
     description: 'SHA-1 hash of the commit to publish'
     required: true

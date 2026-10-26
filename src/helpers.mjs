@@ -30,7 +30,6 @@ export const getInputs = () => {
 
   return {
     githubToken: getInput('github_token', { required: true }),
-    npmToken: getInput('npm_token', { required: true }),
     commitHash: getInput('commit_hash', { required: true }),
     workspace,
     isDryRun: getInput('dry_run', { required: false }) === 'true',
@@ -107,15 +106,6 @@ export const getUniqueVersion = (currentVersion, optionalCommitHash) => {
   const commitHash = optionalCommitHash || getInputs().commitHash;
   const hash = commitHash.slice(0, 7);
   return `${currentVersion}-${versionPrefix}.${randomish}.${hash}`;
-};
-
-// set auth token to allow publishing in CI
-// flags are necessary to avoid errors in workspace repos
-// see: https://github.com/npm/cli/issues/6099
-export const getNpmAuthCommand = (npmToken, workspace) => {
-  const flags = coerceToBoolean(workspace) ? '--workspaces=false --include-workspace-root' : '';
-  log(`npm config set ${flags} //registry.npmjs.org/:_authToken ${npmToken}`);
-  return `npm config set ${flags} //registry.npmjs.org/:_authToken ${npmToken}`;
 };
 
 // updates version in package.json
@@ -306,7 +296,16 @@ export const displayInstallationInstructions = (name, uniqueVersion) => {
 };
 
 export const publishNpmPackage = async () => {
-  const { npmToken, isDryRun, workspace } = getInputs();
+  const { isDryRun, workspace } = getInputs();
+
+  // npm trusted publishing swaps a GitHub OIDC token for a short-lived npm token;
+  // GitHub sets this env var only when the job has the `id-token: write` permission
+  // see: https://docs.npmjs.com/trusted-publishers
+  if (!isDryRun && !process.env.ACTIONS_ID_TOKEN_REQUEST_URL) {
+    throw new Error(
+      'npm trusted publishing needs the "id-token: write" permission on this job. See https://github.com/wistia/publish-branch-to-npm#setup',
+    );
+  }
 
   // run all subsequent commands in the working directory
   process.chdir(getWorkingDirectory());
@@ -316,9 +315,6 @@ export const publishNpmPackage = async () => {
   const uniqueVersion = getUniqueVersion(currentVersion);
 
   startGroup(`\nPublish ${name} package to registry in ${process.cwd()}`);
-
-  // set auth token to allow publishing in CI
-  execSync(getNpmAuthCommand(npmToken, workspace));
 
   // update version in package.json (does not get committed)
   try {

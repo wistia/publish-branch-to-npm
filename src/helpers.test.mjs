@@ -7,7 +7,7 @@ import {
   generateInstallationInstructionsMarkdown,
   getCommentId,
   getGithubClient,
-  getNpmAuthCommand,
+  getInputs,
   getPackageNameAndVersion,
   getPublishPackageCommand,
   getTrimmedPackageVersion,
@@ -16,10 +16,14 @@ import {
   getWorkingDirectory,
   getPackageMetadata,
   getEventType,
+  publishNpmPackage,
 } from './helpers.mjs';
 
 vi.mock(import('@actions/core'), () => ({
   getInput: vi.fn(),
+  startGroup: vi.fn(),
+  endGroup: vi.fn(),
+  notice: vi.fn(),
 }));
 
 vi.mock(import('node:child_process'), () => ({
@@ -32,7 +36,6 @@ vi.mock(import('node:fs'), () => ({
 
 describe('helpers', () => {
   const fakeGithubToken = 'fakeGithubToken';
-  const fakeNpmToken = 'fakeNpmToken';
   const fakecommitHash = 'df20d95efe1569bb854f994217f8712cd3a29aa6';
   const fakePackageName = '@namespace/package-name';
   const fakePackageVersion = '2.10.3-beta.12345678.0000000';
@@ -45,7 +48,6 @@ describe('helpers', () => {
     getInput.mockImplementation((name) => {
       const inputs = {
         github_token: fakeGithubToken,
-        npm_token: fakeNpmToken,
         commit_hash: fakecommitHash,
         workspace: undefined,
         dry_run: 'true',
@@ -101,15 +103,12 @@ describe('helpers', () => {
     });
   });
 
-  describe('getNpmAuthCommand()', () => {
-    it('should return an npm auth command', () => {
-      expect(getNpmAuthCommand(fakeNpmToken)).toBe(
-        'npm config set  //registry.npmjs.org/:_authToken fakeNpmToken',
-      );
+  describe('getInputs()', () => {
+    it('does not read an npm token', () => {
+      const inputs = getInputs();
 
-      expect(getNpmAuthCommand(fakeNpmToken, fakePackageWorkspace)).toBe(
-        'npm config set --workspaces=false --include-workspace-root //registry.npmjs.org/:_authToken fakeNpmToken',
-      );
+      expect(getInput).not.toHaveBeenCalledWith('npm_token', expect.anything());
+      expect(inputs).not.toHaveProperty('npmToken');
     });
   });
 
@@ -343,6 +342,66 @@ describe('helpers', () => {
         expect(error).toBeInstanceOf(Error); // oxlint-disable-line vitest/no-conditional-expect
         expect(error.message).toBe('GITHUB_EVENT_NAME env var missing'); // oxlint-disable-line vitest/no-conditional-expect
       }
+    });
+  });
+
+  describe('publishNpmPackage()', () => {
+    const mockInputs = (overrides) => {
+      getInput.mockImplementation((name) => {
+        const inputs = {
+          github_token: fakeGithubToken,
+          commit_hash: fakecommitHash,
+          workspace: undefined,
+          dry_run: 'false',
+          working_directory: undefined,
+          ...overrides,
+        };
+        return inputs[name];
+      });
+    };
+
+    const getExecutedCommands = () => execSync.mock.calls.map(([command]) => command);
+
+    beforeEach(() => {
+      // don't let process.chdir actually do anything during tests
+      vi.spyOn(process, 'chdir').mockImplementation(() => {});
+      // workflow_dispatch shows instructions in an annotation, so no GitHub API calls are made
+      process.env.GITHUB_EVENT_NAME = 'workflow_dispatch';
+      execSync
+        .mockReturnValueOnce('"1.6.0"\n') // version
+        .mockReturnValueOnce('"@namespace/package-name"\n'); // name
+    });
+
+    afterEach(() => {
+      delete process.env.GITHUB_EVENT_NAME;
+      delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL;
+    });
+
+    it('fails before running npm when the job lacks the id-token permission', async () => {
+      mockInputs({ dry_run: 'false' });
+
+      await expect(publishNpmPackage()).rejects.toThrow(
+        'npm trusted publishing needs the "id-token: write" permission on this job. See https://github.com/wistia/publish-branch-to-npm#setup',
+      );
+      expect(execSync).not.toHaveBeenCalled();
+    });
+
+    it('publishes without setting an npm auth token', async () => {
+      mockInputs({ dry_run: 'false' });
+      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://token.actions.example.com/';
+
+      await publishNpmPackage();
+
+      expect(getExecutedCommands()).toContain('npm publish --verbose --tag beta');
+      expect(getExecutedCommands().join('\n')).not.toContain('_authToken');
+    });
+
+    it('runs a dry run without the id-token permission', async () => {
+      mockInputs({ dry_run: 'true' });
+
+      await publishNpmPackage();
+
+      expect(getExecutedCommands()).toContain('npm publish --verbose --tag beta --dry-run');
     });
   });
 });

@@ -54,7 +54,7 @@ A token that GitHub automatically creates and stores in a `GITHUB_TOKEN` secret 
 
 ### dry_run
 
-Does everything publish would do except actually publishing to the registry. Reports the details of what would have been published, see [npm publish docs](https://docs.npmjs.com/cli/v7/commands/npm-publish). `dry_run` is optional and defaults to `false`.
+Does everything publish would do except actually publishing to the registry. Reports the details of what would have been published, see [npm publish docs](https://docs.npmjs.com/cli/v7/commands/npm-publish). A dry run shows no installation instructions, because no version is published. `dry_run` is optional and defaults to `false`.
 
 ### commit_hash
 

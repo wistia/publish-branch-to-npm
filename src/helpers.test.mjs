@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { getInput } from '@actions/core';
+import { getInput, notice } from '@actions/core';
 import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest';
 import {
   coerceToBoolean,
@@ -24,6 +25,7 @@ vi.mock(import('@actions/core'), () => ({
   startGroup: vi.fn(),
   endGroup: vi.fn(),
   notice: vi.fn(),
+  debug: vi.fn(),
 }));
 
 vi.mock(import('node:child_process'), () => ({
@@ -200,12 +202,43 @@ describe('helpers', () => {
   });
 
   describe('getUniqueVersion()', () => {
+    const mockRandomUUID = (uuid) => vi.spyOn(crypto, 'randomUUID').mockReturnValue(uuid);
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('should generate a unique version string', () => {
       const fakeCurrentVersion = '1.1.1';
 
       expect(getUniqueVersion(fakeCurrentVersion, fakecommitHash)).toMatch(
         /1\.1\.1-beta\..*\.df20d95/,
       );
+    });
+
+    // npm publishes 1.1.1-beta.x.0082873 as 1.1.1-beta.x.82873
+    it('drops leading zeros from an all-digit commit hash part, as npm does', () => {
+      expect(getUniqueVersion('1.1.1', '0082873efe1569bb')).toMatch(/^1\.1\.1-beta\.[^.]+\.82873$/);
+      expect(getUniqueVersion('1.1.1', '0000000efe1569bb')).toMatch(/^1\.1\.1-beta\.[^.]+\.0$/);
+    });
+
+    it('drops leading zeros from an all-digit random part, as npm does', () => {
+      mockRandomUUID('01547643-0000-4000-8000-000000000000');
+
+      expect(getUniqueVersion('1.1.1', fakecommitHash)).toBe('1.1.1-beta.1547643.df20d95');
+    });
+
+    // Number('0e12345') is 0, so a hash that reads as an exponent must stay as it is
+    it('keeps leading zeros in a part that has a letter', () => {
+      mockRandomUUID('0abc1234-0000-4000-8000-000000000000');
+
+      expect(getUniqueVersion('1.1.1', '0e12345efe1569bb')).toBe('1.1.1-beta.0abc1234.0e12345');
+    });
+
+    it('keeps an all-digit part that has no leading zero', () => {
+      mockRandomUUID('12345678-0000-4000-8000-000000000000');
+
+      expect(getUniqueVersion('1.1.1', '1234567efe1569bb')).toBe('1.1.1-beta.12345678.1234567');
     });
   });
 
@@ -409,6 +442,34 @@ describe('helpers', () => {
       await publishNpmPackage();
 
       expect(getExecutedCommands()).toContain('npm publish --verbose --tag beta --dry-run');
+    });
+
+    it('shows installation instructions after a publish', async () => {
+      mockInputs({ dry_run: 'false' });
+      vi.stubEnv('ACTIONS_ID_TOKEN_REQUEST_URL', 'https://token.actions.example.com/');
+
+      await publishNpmPackage();
+
+      expect(getExecutedCommands()).toContain('npm publish --verbose --tag beta');
+      expect(notice).toHaveBeenCalledExactlyOnceWith(
+        expect.stringContaining('npm install @namespace/package-name@1.6.0-beta.'),
+      );
+    });
+
+    it('shows no installation instructions after a dry run', async () => {
+      mockInputs({ dry_run: 'true' });
+
+      await publishNpmPackage();
+
+      expect(getExecutedCommands()).toContain('npm publish --verbose --tag beta --dry-run');
+      expect(notice).not.toHaveBeenCalled();
+    });
+
+    it('does not fail after a dry run on an event without installation instructions', async () => {
+      mockInputs({ dry_run: 'true' });
+      vi.stubEnv('GITHUB_EVENT_NAME', 'push');
+
+      await expect(publishNpmPackage()).resolves.toBeUndefined();
     });
   });
 });

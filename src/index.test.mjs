@@ -12,7 +12,7 @@ vi.mock(import('./helpers.mjs'), () => ({
 
 describe('index', () => {
   it('reports a failure once, with its message', async () => {
-    // the entry point runs as soon as it is imported
+    // the entry point runs once, when it is first imported; a second test needs vi.resetModules() first
     await import('../index.mjs');
 
     expect(setFailed).toHaveBeenCalledExactlyOnceWith('npm publish failed');

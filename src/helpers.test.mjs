@@ -24,6 +24,7 @@ vi.mock(import('@actions/core'), () => ({
   startGroup: vi.fn(),
   endGroup: vi.fn(),
   notice: vi.fn(),
+  debug: vi.fn(),
 }));
 
 vi.mock(import('node:child_process'), () => ({

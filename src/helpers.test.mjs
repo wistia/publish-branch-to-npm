@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { getInput } from '@actions/core';
 import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest';
@@ -201,12 +202,42 @@ describe('helpers', () => {
   });
 
   describe('getUniqueVersion()', () => {
+    const mockRandomUUID = (uuid) => vi.spyOn(crypto, 'randomUUID').mockReturnValue(uuid);
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('should generate a unique version string', () => {
       const fakeCurrentVersion = '1.1.1';
 
       expect(getUniqueVersion(fakeCurrentVersion, fakecommitHash)).toMatch(
         /1\.1\.1-beta\..*\.df20d95/,
       );
+    });
+
+    // npm publishes 1.1.1-beta.x.0082873 as 1.1.1-beta.x.82873
+    it('drops leading zeros from an all-digit commit hash part, as npm does', () => {
+      expect(getUniqueVersion('1.1.1', '0082873efe1569bb')).toMatch(/^1\.1\.1-beta\.[^.]+\.82873$/);
+      expect(getUniqueVersion('1.1.1', '0000000efe1569bb')).toMatch(/^1\.1\.1-beta\.[^.]+\.0$/);
+    });
+
+    it('drops leading zeros from an all-digit random part, as npm does', () => {
+      mockRandomUUID('01547643-0000-4000-8000-000000000000');
+
+      expect(getUniqueVersion('1.1.1', fakecommitHash)).toBe('1.1.1-beta.1547643.df20d95');
+    });
+
+    it('keeps leading zeros in a part that has a letter', () => {
+      mockRandomUUID('0abc1234-0000-4000-8000-000000000000');
+
+      expect(getUniqueVersion('1.1.1', '0a1b2c3d4e5f6071')).toBe('1.1.1-beta.0abc1234.0a1b2c3');
+    });
+
+    it('keeps an all-digit part that has no leading zero', () => {
+      mockRandomUUID('12345678-0000-4000-8000-000000000000');
+
+      expect(getUniqueVersion('1.1.1', '1234567efe1569bb')).toBe('1.1.1-beta.12345678.1234567');
     });
   });
 

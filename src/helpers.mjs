@@ -99,13 +99,16 @@ export const getGithubClient = (githubToken) => {
 export const getTrimmedPackageVersion = (version) =>
   version.trim().split(/[.-]/).slice(0, 3).join('.');
 
+// semver forbids leading zeros in an all-digit part, and npm drops them when it publishes
+const toSemverIdentifier = (part) => (/^\d+$/.test(part) ? String(Number(part)) : part);
+
 // current version + 8 chars of a UUID + 7 chars of the commit hash
 // must be valid semver https://semver.org/
 export const getUniqueVersion = (currentVersion, optionalCommitHash) => {
   const versionPrefix = 'beta'; // alpha, rc
-  const randomish = crypto.randomUUID().slice(0, 8);
+  const randomish = toSemverIdentifier(crypto.randomUUID().slice(0, 8));
   const commitHash = optionalCommitHash || getInputs().commitHash;
-  const hash = commitHash.slice(0, 7);
+  const hash = toSemverIdentifier(commitHash.slice(0, 7));
   return `${currentVersion}-${versionPrefix}.${randomish}.${hash}`;
 };
 

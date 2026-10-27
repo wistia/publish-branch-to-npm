@@ -1,4 +1,4 @@
-import { error as displayError, setFailed } from '@actions/core';
+import { setFailed } from '@actions/core';
 import { publishNpmPackage } from './src/helpers.mjs';
 
 try {
@@ -6,6 +6,5 @@ try {
   // oxlint-disable-next-line node/no-top-level-await
   await publishNpmPackage();
 } catch (error) {
-  displayError(JSON.stringify(error));
   setFailed(error.message);
 }

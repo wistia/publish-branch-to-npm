@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { getInput } from '@actions/core';
+import { getInput, notice } from '@actions/core';
 import { expect, it, describe, vi, beforeEach, afterEach } from 'vitest';
 import {
   coerceToBoolean,
@@ -16,10 +16,14 @@ import {
   getWorkingDirectory,
   getPackageMetadata,
   getEventType,
+  publishNpmPackage,
 } from './helpers.mjs';
 
 vi.mock(import('@actions/core'), () => ({
   getInput: vi.fn(),
+  startGroup: vi.fn(),
+  endGroup: vi.fn(),
+  notice: vi.fn(),
 }));
 
 vi.mock(import('node:child_process'), () => ({
@@ -343,6 +347,72 @@ describe('helpers', () => {
         expect(error).toBeInstanceOf(Error); // oxlint-disable-line vitest/no-conditional-expect
         expect(error.message).toBe('GITHUB_EVENT_NAME env var missing'); // oxlint-disable-line vitest/no-conditional-expect
       }
+    });
+  });
+
+  describe('publishNpmPackage()', () => {
+    const mockInputs = (overrides) => {
+      getInput.mockImplementation((name) => {
+        const inputs = {
+          github_token: fakeGithubToken,
+          npm_token: fakeNpmToken,
+          commit_hash: fakecommitHash,
+          workspace: undefined,
+          dry_run: 'false',
+          working_directory: undefined,
+          ...overrides,
+        };
+        return inputs[name];
+      });
+    };
+
+    const getExecutedCommands = () => execSync.mock.calls.map(([command]) => command);
+
+    // output keyed by command, so a test that stops early leaves nothing queued for the next one
+    const npmOutput = {
+      'npm pkg get version': '"1.6.0"\n',
+      'npm pkg get name': '"@namespace/package-name"\n',
+    };
+
+    beforeEach(() => {
+      // don't let process.chdir actually do anything during tests
+      vi.spyOn(process, 'chdir').mockImplementation(() => {});
+      // workflow_dispatch shows instructions in an annotation, so no GitHub API calls are made
+      vi.stubEnv('GITHUB_EVENT_NAME', 'workflow_dispatch');
+      execSync.mockImplementation((command) => npmOutput[command]);
+    });
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+      vi.restoreAllMocks();
+      execSync.mockReset();
+    });
+
+    it('shows installation instructions after a publish', async () => {
+      mockInputs({ dry_run: 'false' });
+
+      await publishNpmPackage();
+
+      expect(getExecutedCommands()).toContain('npm publish --verbose --tag beta');
+      expect(notice).toHaveBeenCalledExactlyOnceWith(
+        expect.stringContaining('npm install @namespace/package-name@1.6.0-beta.'),
+      );
+    });
+
+    it('shows no installation instructions after a dry run', async () => {
+      mockInputs({ dry_run: 'true' });
+
+      await publishNpmPackage();
+
+      expect(getExecutedCommands()).toContain('npm publish --verbose --tag beta --dry-run');
+      expect(notice).not.toHaveBeenCalled();
+    });
+
+    it('does not fail after a dry run on an event without installation instructions', async () => {
+      mockInputs({ dry_run: 'true' });
+      vi.stubEnv('GITHUB_EVENT_NAME', 'push');
+
+      await expect(publishNpmPackage()).resolves.toBeUndefined();
     });
   });
 });

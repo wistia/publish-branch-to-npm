@@ -233,10 +233,11 @@ describe('helpers', () => {
       expect(getUniqueVersion('1.1.1', fakecommitHash)).toBe('1.1.1-beta.1547643.df20d95');
     });
 
+    // Number('0e12345') is 0, so a hash that reads as an exponent must stay as it is
     it('keeps leading zeros in a part that has a letter', () => {
       mockRandomUUID('0abc1234-0000-4000-8000-000000000000');
 
-      expect(getUniqueVersion('1.1.1', '0a1b2c3d4e5f6071')).toBe('1.1.1-beta.0abc1234.0a1b2c3');
+      expect(getUniqueVersion('1.1.1', '0e12345efe1569bb')).toBe('1.1.1-beta.0abc1234.0e12345');
     });
 
     it('keeps an all-digit part that has no leading zero', () => {

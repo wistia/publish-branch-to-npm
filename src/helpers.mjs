@@ -102,7 +102,8 @@ export const getTrimmedPackageVersion = (version) =>
 // semver forbids leading zeros in an all-digit part, and npm drops them when it publishes
 const toSemverIdentifier = (part) => (/^\d+$/.test(part) ? String(Number(part)) : part);
 
-// current version + 8 chars of a UUID + 7 chars of the commit hash
+// current version + 8 chars of a UUID + 7 chars of the commit hash,
+// without leading zeros when a part is all digits
 // must be valid semver https://semver.org/
 export const getUniqueVersion = (currentVersion, optionalCommitHash) => {
   const versionPrefix = 'beta'; // alpha, rc

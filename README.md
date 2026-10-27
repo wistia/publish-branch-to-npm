@@ -2,15 +2,55 @@
 
 GitHub action to publish a pre-release version of an npm package to the registry.
 
+The action publishes with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers). It does not use an npm token.
+
+## Setup
+
+Do these steps once for each repository and package.
+
+1. Give the job (or the whole workflow) that runs this action these permissions:
+
+   ```yml
+   permissions:
+     contents: read # check out the repository
+     pull-requests: write # pull_request trigger only: post the installation comment
+     id-token: write # npm trusted publishing
+   ```
+
+   A `permissions` block sets every permission it does not name to `none`. Keep any other permission that the job already needs.
+
+2. On npmjs.com, add a trusted publisher to each package. See [the npm docs](https://docs.npmjs.com/trusted-publishers#for-github-actions).
+   - Publisher: GitHub Actions.
+   - Owner and repository: the repository that runs this action.
+   - Workflow filename: the file that runs this action, for example `publish-branch-package.yml`. Give only the filename, not the path. If a workflow calls a reusable workflow that runs this action, give the filename of the calling workflow, and give `id-token: write` to both workflows. See [npm troubleshooting](https://docs.npmjs.com/trusted-publishers#troubleshooting).
+   - Allowed actions: allow `npm publish`. This action uses `npm publish`. Configurations created after September 3, 2026 allow only `npm stage publish` by default.
+
+   The package must publish successfully within 2 days, or the new configuration expires.
+
+3. Run the job on a GitHub-hosted runner with npm 11.5.1 or later and Node 22.14.0 or later.
+   - The action runs the npm on the `PATH`, usually from `actions/setup-node`. It does not bring its own npm.
+   - Node 24.5.0 and later include npm 11.5.1 or later. Node 22 includes npm 10, so run `npm install --global npm@^11.5.1` before this action.
+4. Make `repository.url` in the `package.json` of the package match the GitHub repository exactly.
+5. Do not set an npm token for the job or the workflow, for example `NODE_AUTH_TOKEN`. If trusted publishing fails, npm uses a token that it finds instead. If a step that installs private dependencies needs a token, set it in the `env` of that step only.
+
+If the job does not have the `id-token: write` permission, the action fails before it runs npm. A dry run skips this check.
+
+If a publish fails, look for lines that contain `oidc` in the job log. The action runs `npm publish --verbose`, so npm logs why trusted publishing failed. No `oidc` lines at all usually means that the npm on the `PATH` is too old (see step 3).
+
+### Upgrading from v2
+
+1. In one change, set `uses:` to `wistia/publish-branch-to-npm@v3.0.0` (or its commit SHA), delete the `npm_token` line, and make the repository edits in [Setup](#setup) steps 1, 3, 4 and 5. v2 fails without `npm_token`.
+2. Add the trusted publisher on npmjs.com (Setup step 2) only when the change is ready.
+3. Publish a branch package within 2 days of adding the trusted publisher. Open a pull request, or run the workflow by hand from the branch with the change ("Use workflow from").
+4. After a branch package publishes, delete the npm token secret if nothing else uses it.
+
+A bot pull request that only changes the version in `uses:` fails at the `id-token: write` check until you finish Setup.
+
 ## Inputs
 
 ### github_token
 
 A token that GitHub automatically creates and stores in a `GITHUB_TOKEN` secret to use in your workflow.
-
-### npm_token
-
-An npm access token. See [https://docs.npmjs.com/creating-and-viewing-access-tokens](https://docs.npmjs.com/creating-and-viewing-access-tokens)
 
 ### dry_run
 
@@ -32,17 +72,16 @@ This action can be triggered by **`pull_request`** and **`workflow_dispatch`** e
 
 ### pull_request
 
-Add the following step to your workflow job (after repo checkout, node setup, etc):
+Add the following step to your workflow job (after repo checkout, node setup, etc). The job needs the permissions in [Setup](#setup).
 
 ```yml
 - name: Publish branch package to npm
-  uses: wistia/publish-branch-to-npm@v1.0.0
+  uses: wistia/publish-branch-to-npm@v3.0.0
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
-    npm_token: ${{ secrets.NPM_AUTH_TOKEN }}
 ```
 
-`github_token` and `npm_token` are required inputs and this action cannot work without them.
+`github_token` is a required input and this action cannot work without it.
 
 When the action completes, you should see a comment like this in new Pull Requests:
 
@@ -52,7 +91,7 @@ If new commits are pushed to to a pre-existing branch, the comment will update i
 
 ### workflow_dispatch
 
-This action can also be triggered manually.
+This action can also be triggered manually. The job needs the permissions in [Setup](#setup).
 
 ```yml
 on:
@@ -63,10 +102,9 @@ on:
         required: true
 ---
 - name: Publish branch package to npm
-  uses: wistia/publish-branch-to-npm@mew/debugging
+  uses: wistia/publish-branch-to-npm@v3.0.0
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
-    npm_token: ${{ secrets.NPM_AUTH_TOKEN }}
     commit_hash: ${{ github.event.inputs.commit_hash }}
 ```
 

@@ -343,8 +343,10 @@ export const publishNpmPackage = async () => {
   // publish package
   execSync(getPublishPackageCommand(isDryRun, workspace));
 
-  // display installation instructions
-  await displayInstallationInstructions(name, uniqueVersion);
+  // display installation instructions; a dry run published nothing, so there is nothing to install
+  if (!isDryRun) {
+    await displayInstallationInstructions(name, uniqueVersion);
+  }
 
   endGroup();
 };
